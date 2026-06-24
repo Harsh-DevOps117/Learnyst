@@ -42,7 +42,6 @@ func (n *Notifier) SendSMSOTP(to string, otpCode string) error {
 	return nil
 }
 
-// Mailtrap payload mapping structures
 type mailtrapEmail struct {
 	Email string `json:"email"`
 }

@@ -1,6 +1,8 @@
 package service
 
 import (
+	dtos "lms-api-gateway/internal/config/dto"
+
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -17,8 +19,6 @@ func NewAuthService(db *gorm.DB, redis *redis.Client) *AuthService {
 	}
 }
 
-func (a *AuthService) Singup(
-
-) {}
+func (a *AuthService) Singup(user *dtos.SignupRequest) {}
 
 func (a *AuthService) Login() {}
