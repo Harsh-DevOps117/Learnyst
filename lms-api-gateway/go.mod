@@ -5,8 +5,19 @@ go 1.26.3
 require go.uber.org/zap v1.28.0
 
 require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/gofrs/uuid/v5 v5.4.0 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/kevinburke/go-types v0.0.0-20260609004541-e965afa6a3a1 // indirect
+	github.com/kevinburke/rest/v2 v2.15.0 // indirect
+	github.com/kevinburke/twilio-go/v2 v2.14.0 // indirect
+	github.com/redis/go-redis/v9 v9.21.0 // indirect
+	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
+	github.com/ttacon/libphonenumber v1.2.1 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
 )
 
 require (

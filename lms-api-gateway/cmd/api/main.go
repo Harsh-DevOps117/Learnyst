@@ -2,7 +2,8 @@ package main
 
 import (
 	"lms-api-gateway/internal/config"
-	"lms-api-gateway/internal/handler"
+	"lms-api-gateway/internal/service"
+
 	"net/http"
 	"os"
 	"time"
@@ -30,7 +31,7 @@ func main(){
 	gin.SetMode(gin.DebugMode)
 
 	app:=gin.New()
-	app.GET("/health",handler.NewHealthCheckHandler().HealthCheck)
+	app.GET("/health",service.NewHealthCheckHandler().HealthCheck)
 
 	v1Auth := app.Group("/v1/auth")
 	{

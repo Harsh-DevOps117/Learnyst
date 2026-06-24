@@ -13,12 +13,9 @@ var Log *zap.Logger
 func InitLogger() {
 	logFolder := "logs"
 	logFile := filepath.Join(logFolder, "auth-service.log")
-
-
 	if err := os.MkdirAll(logFolder, 0755); err != nil {
 		panic("Failed to initialize system log folder structure: " + err.Error())
 	}
-
 
 	fileEncoderConfig := zap.NewProductionEncoderConfig()
 	fileEncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
