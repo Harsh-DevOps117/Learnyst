@@ -2,6 +2,7 @@ package main
 
 import (
 	"lms-api-gateway/internal/config"
+	"lms-api-gateway/internal/db"
 	"lms-api-gateway/internal/service"
 
 	"net/http"
@@ -26,8 +27,15 @@ func main(){
 
 	config.Log.Info("Setting Up PORT and ENVIRONMENT")
 
+	db, err:=db.Initdatabase()
+	if err != nil {
+		config.Log.Fatal(err.Error())
+	}
+	db.AutoMigrate(db)
+
 	config.InitLogger()
 	config.Log.Info("Initialising The Server....")
+
 	gin.SetMode(gin.DebugMode)
 
 	app:=gin.New()

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"lms-api-gateway/internal/config"
 	"lms-api-gateway/internal/models"
 	"os"
 
@@ -26,9 +27,15 @@ func Initdatabase()(*gorm.DB,	error) {
 
 func Automigrate(db *gorm.DB) {
 	err:=db.AutoMigrate(
-		models.User{}, models.Role{}, models.Permission{}, models.Tenant{}, models.Refresh_Token{}, models.Subscription{}
+		&models.User{},
+		&models.Role{},
+		&models.Permission{},
+		&models.Tenant{},
+		&models.Refresh_Token{},
+		&models.Subscription{},
 	)
+	config.Log.Info("Database Migrated Successfully...")
 	if err != nil {
-		config.Logger.Fatal(err)
+		config.Log.Fatal(err.Error())
 	}
 }
