@@ -21,15 +21,15 @@ type Notifier struct {
 
 func NewNotifier() *Notifier {
 
-	sid := getEnv("TWILIO_ACCOUNT_SID", "AC9de59b8269bc60bd29da7abd43e884e1")
-	token := getEnv("TWILIO_AUTH_TOKEN", "a867e0daa9e92862262250ec8b59c214")
-	number := getEnv("TWILIO_PHONE_NUMBER", "+17128833435")
+	sid := os.Getenv("TWILIO_ACCOUNT_SID")
+	token := os.Getenv("TWILIO_AUTH_TOKEN")
+	number := os.Getenv("TWILIO_PHONE_NUMBER")
 
 	return &Notifier{
 		twilioClient:  twilio.NewClient(sid, token, nil),
 		twilioNumber:  number,
-		mailtrapToken: getEnv("MAILTRAP_API_TOKEN", "<YOUR_API_TOKEN>"),
-		mailtrapFrom:  getEnv("MAILTRAP_FROM_EMAIL", "hello@demomailtrap.co"),
+		mailtrapToken: os.Getenv("MAILTRAP_TOKEN"),
+		mailtrapFrom:  os.Getenv("MAILTRAP_FROM_EMAIL"),
 	}
 }
 

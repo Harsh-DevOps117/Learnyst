@@ -1,0 +1,15 @@
+### Get Global Users
+GET http://localhost:3001/api/v1/admin/users
+Accept: application/json
+
+###
+
+### Get Global Analytics
+GET http://localhost:3001/api/v1/admin/analytics
+Accept: application/json
+
+###
+
+### Delete a User
+DELETE http://localhost:3001/api/v1/admin/users/2
+Accept: application/json

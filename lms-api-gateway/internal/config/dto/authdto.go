@@ -31,7 +31,9 @@ type OTPVerifyRequest struct {
 
 type AuthResponse struct {
 	Message      string `json:"message"`
-	UserID       string `json:"user_id,omitempty"`
+	UserID       uint   `json:"user_id,omitempty"`
+	RoleID       uint   `json:"role_id,omitempty"`
+	AccessToken  string `json:"access_token,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 	ExpiresAt    int64  `json:"expires_at,omitempty"`
 }
@@ -70,4 +72,26 @@ type AddPermissionRequest struct {
 	RoleID         int    `json:"role_id" binding:"required,gt=0"`
 	PermissionType string `json:"permission_type" binding:"required,max=50"`
 	PermissionName string `json:"permission_name" binding:"required,max=50"`
+}
+
+type ResetPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type CompleteResetPasswordRequest struct {
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
+type ChangeEmailRequest struct {
+	NewEmail string `json:"new_email" binding:"required,email"`
+}
+
+type VerifyChangeEmailRequest struct {
+	Token string `json:"token" binding:"required"`
 }

@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Main Website Tokens (Developer Brutalism) */
+  --color-canvas: #1c1c1c;
+  --color-surface-1: #2a2a2a;
+  --color-surface-2: #e5e5e5;
+  
+  --color-ink: #ffffff;
+  --color-ink-muted: #999999;
+  
+  --color-primary: #ffffff;
+  --color-on-primary: #000000;
+  
+  --color-accent-orange: #ff5500;
+  --color-accent-blue: #0066ff;
+  
+  --font-display: var(--font-space-grotesk), sans-serif;
+  --font-ui: var(--font-inter), sans-serif;
+  --font-mono: var(--font-space-mono), monospace;
+
+  /* Tenant Template Tokens (Airtable Editorial) */
+  --color-t-primary: #181d26;
+  --color-t-primary-active: #0d1218;
+  --color-t-canvas: #ffffff;
+  --color-t-surface-soft: #f8fafc;
+  --color-t-surface-strong: #e0e2e6;
+  --color-t-surface-dark: #181d26;
+  --color-t-hairline: #dddddd;
+  --color-t-ink: #181d26;
+  --color-t-body: #333840;
+  --color-t-muted: #41454d;
+  --color-t-on-primary: #ffffff;
+  --color-t-signature-coral: #aa2d00;
+  --color-t-signature-cream: #f5e9d4;
+  --color-t-signature-peach: #fcab79;
+  --color-t-signature-mint: #a8d8c4;
+  --color-t-signature-yellow: #f4d35e;
+  --color-t-signature-mustard: #d9a441;
+  --color-t-link: #1b61c9;
+  --color-t-link-active: #1a3866;
+}
+
+:root {
+  --background: var(--color-canvas);
+  --foreground: var(--color-ink);
+}
+
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Developer Brutalism Graph Paper Grid */
+.bg-graph-paper {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  background-position: -1px -1px;
+}
+
+.bg-graph-paper-light {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  background-position: -1px -1px;
+}

@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	ID             string         `gorm:"type:varchar(255);primaryKey autoIncrement"`
+	ID             uint           `gorm:"primaryKey;autoIncrement"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      gorm.DeletedAt `gorm:"index"`
@@ -22,7 +22,6 @@ type User struct {
 	Location       string         `gorm:"type:text;not null"`
 
 	Password_Hash  string         `gorm:"type:varchar(255);not null"`
-	Salt           string         `gorm:"type:varchar(255);not null"`
 
 	RoleID        int            `gorm:"not null"`
 	Role          Role           `gorm:"foreignKey:RoleID"`
@@ -32,7 +31,7 @@ type User struct {
 type Refresh_Token struct {
 	ID          uint           `gorm:"primaryKey;autoIncrement"`
 	Token       string         `gorm:"type:text;not null;uniqueIndex"`
-	UserID      string         `gorm:"type:varchar(255);not null;index"`
+	UserID      uint           `gorm:"not null;index"`
 	User        User           `gorm:"foreignKey:UserID"`
 	Device_Name string         `gorm:"type:varchar(50);not null"`
 	IP_Address  string         `gorm:"type:varchar(50);not null"`
@@ -43,7 +42,7 @@ type Refresh_Token struct {
 
 type Role struct {
 	ID          int          `gorm:"primaryKey;autoIncrement"`
-	Role_Name   string       `gorm:"type:varchar(50);not null;uniqueIndex"`
+	Name        string       `gorm:"type:varchar(50);not null;uniqueIndex"`
 	Permissions []Permission `gorm:"foreignKey:RoleID"`
 }
 
@@ -56,7 +55,7 @@ type Permission struct {
 
 type Subscription struct {
 	gorm.Model
-	OwnerUserID string    `gorm:"type:varchar(255);not null;index"`
+	OwnerUserID uint      `gorm:"not null;index"`
 	TenantID    uint      `gorm:"not null;index"`
 	Plan_Name   string    `gorm:"type:varchar(50);not null"`
 	Plan_Type   string    `gorm:"type:varchar(50);not null"`
@@ -69,7 +68,7 @@ type Subscription struct {
 
 type Tenant struct {
 	gorm.Model
-	OwnerUserID       string         `gorm:"type:varchar(255);not null;index"`
+	OwnerUserID       uint           `gorm:"not null;index"`
 	User              User           `gorm:"foreignKey:OwnerUserID"`
 	Academy_Name      string         `gorm:"type:varchar(100);not null"`
 	Academy_Slug      string         `gorm:"type:varchar(100);not null;uniqueIndex"`

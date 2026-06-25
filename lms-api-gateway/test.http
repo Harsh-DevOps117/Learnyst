@@ -1,0 +1,93 @@
+@baseUrl = http://localhost:3000
+@token = your_jwt_access_token_here
+
+### -------------------------------------------
+### UNPROTECTED ROUTES
+### -------------------------------------------
+
+### 1. Initiate Signup
+POST {{baseUrl}}/v1/auth/register/initiate
+Content-Type: application/json
+
+{
+    "first_name": "John",
+    "middle_name": "Doe",
+    "last_name": "Smith",
+    "email": "8707460911har@gmail.com",
+    "phone": "+917860022749",
+    "password": "Password123!",
+    "location": "New York",
+    "role_id": 1
+}
+
+### 2. Resend Signup OTP
+GET {{baseUrl}}/v1/auth/register/resend-otp?phone=+917860022749
+
+### 3. Complete Signup (Verify OTP)
+POST {{baseUrl}}/v1/auth/register/complete
+Content-Type: application/json
+
+{
+    "target": "+917860022749",
+    "code": "423566"
+}
+
+### 4. Login
+POST {{baseUrl}}/v1/auth/login
+Content-Type: application/json
+
+{
+    "email": "8707460911har@gmail.com",
+    "password": "Password123!",
+    "device_name": "Desktop Browser"
+}
+
+### 5. Request Password Reset
+POST {{baseUrl}}/v1/auth/reset-password
+Content-Type: application/json
+
+{
+    "email": "8707460911har@gmail.com"
+}
+
+### 6. Complete Password Reset
+POST {{baseUrl}}/v1/auth/reset-password/complete
+Content-Type: application/json
+
+{
+    "token": "verification_token_from_email_here",
+    "new_password": "NewStrongPassword123!"
+}
+
+### -------------------------------------------
+### PROTECTED ROUTES
+### Note: Replace `your_jwt_access_token_here` at the top with a valid access token from login
+### -------------------------------------------
+
+### 7. Change Password
+POST {{baseUrl}}/v1/auth/change-password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "old_password": "Password123!",
+    "new_password": "NewStrongPassword123!"
+}
+
+### 8. Initiate Email Change
+POST {{baseUrl}}/v1/auth/change-email/initiate
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "new_email": "8707460911har@gmail.com"
+}
+
+### 9. Verify Email Change
+POST {{baseUrl}}/v1/auth/change-email/verify
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "token": "verification_token_from_new_email_here"
+}
