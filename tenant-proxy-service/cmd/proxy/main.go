@@ -38,7 +38,6 @@ func main() {
 		log.Println("Starting HTTPS Proxy Server on :443...")
 		log.Fatal(server.ListenAndServeTLS("", ""))
 	} else {
-		// Local development
 		port := os.Getenv("PORT")
 		if port == "" {
 			port = "8080"
