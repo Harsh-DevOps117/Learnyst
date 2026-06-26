@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/authStore';
 
 export const authApi = axios.create({
   baseURL: 'http://localhost:3000/v1/auth',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -10,6 +11,7 @@ export const authApi = axios.create({
 
 export const coreApi = axios.create({
   baseURL: 'http://localhost:3001/api/v1',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -43,7 +43,7 @@ func SendInvitationEmail(to string, tenantName string, customDomain string, invi
 	`, tenantName, inviteLink, inviteLink)
 
 	m.SetBody("text/html", htmlBody)
-
+	fmt.Println(htmlBody)
 	d := gomail.NewDialer(host, port, user, pass)
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 

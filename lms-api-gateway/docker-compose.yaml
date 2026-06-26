@@ -81,6 +81,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - shared-assets:/shared
     networks:
       - lms
     restart: unless-stopped
@@ -152,6 +154,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - lms
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -169,6 +172,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - lms
+    restart: unless-stopped
 
   lms-video-worker:
     build:
@@ -182,6 +186,8 @@ services:
       KAFKA_BROKER: kafka:29092
     depends_on:
       - kafka
+    volumes:
+      - shared-assets:/shared
     networks:
       - lms
     restart: unless-stopped
@@ -225,6 +231,7 @@ services:
 
 volumes:
   pgdata:
+  shared-assets:
 
 networks:
   lms:

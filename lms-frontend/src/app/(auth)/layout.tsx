@@ -1,24 +1,19 @@
 'use client';
-
 import { Play } from 'lucide-react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useRef } from 'react';
-
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const frameRef = useRef(null);
-
   useGSAP(() => {
-    // Animation removed per user request
   });
-
   return (
     <div className="min-h-screen flex bg-white bg-graph-paper-light">
-      {/* Left Side: Auth Form */}
+      {}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 border-r-2 border-black relative z-10 bg-white">
         <div className="max-w-md w-full space-y-8 bg-white border-2 border-black p-10">
           <div className="text-center">
@@ -32,10 +27,9 @@ export default function AuthLayout({
           {children}
         </div>
       </div>
-
-      {/* Right Side: Visuals */}
+      {}
       <div ref={frameRef} className="hidden lg:flex w-1/2 bg-[#161616] items-center justify-center relative overflow-hidden">
-        {/* Grid Background */}
+        {}
         <div
           className="absolute inset-0 pointer-events-none opacity-20"
           style={{
@@ -44,11 +38,10 @@ export default function AuthLayout({
             backgroundPosition: "center top",
           }}
         ></div>
-
         <div className="relative z-10 flex w-full max-w-[800px] gap-12 px-12">
-          {/* Left diagram */}
+          {}
           <div className="w-[45%] flex flex-col items-center justify-center relative">
-             {/* Connecting SVG Path */}
+             {}
              <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" style={{ overflow: 'visible' }}>
                 <path 
                   d="M 10,100 L -30,100 L -30,220 L 300,220 L 300,340 L 250,340" 
@@ -60,18 +53,15 @@ export default function AuthLayout({
                 <circle cx="10" cy="100" r="5" fill="#f5a623" />
                 <circle cx="260" cy="340" r="5" fill="#f5a623" />
              </svg>
-             
              <div className="flex flex-col gap-28 relative z-10 w-full">
                <div className="bg-black text-white h-[160px] rounded-2xl border border-gray-800 shadow-2xl flex items-center justify-center relative">
                  <h3 className="font-display text-5xl font-bold tracking-tight">TEACH</h3>
                </div>
-
                <div className="bg-black text-white h-[160px] rounded-2xl border border-gray-800 shadow-2xl flex items-center justify-center relative">
                  <h3 className="font-display text-5xl font-bold tracking-tight">SCALE</h3>
                </div>
              </div>
-
-             {/* Center Green Circle */}
+             {}
              <div className="absolute top-1/2 left-[30%] -translate-x-1/2 -translate-y-1/2 z-20 w-[90px] h-[90px] bg-[#1db954] rounded-full flex items-center justify-center border-[6px] border-[#161616]">
                <span className="text-black font-bold text-[12px] uppercase tracking-widest rotate-45">TO</span>
                <div className="absolute -left-2 top-1/2 w-4 h-4 bg-white rounded-full -translate-y-1/2"></div>
@@ -79,8 +69,7 @@ export default function AuthLayout({
                <div className="absolute top-3 left-4 w-2 h-2 bg-black rounded-full"></div>
              </div>
           </div>
-
-          {/* Right accordion */}
+          {}
           <div className="w-[55%] flex flex-col gap-4 justify-center">
              <div className="bg-[#1f1f1f] border border-gray-800 rounded-3xl p-8 shadow-2xl">
                <div className="flex justify-between items-center mb-4">
@@ -94,12 +83,10 @@ export default function AuthLayout({
                  SEE WHAT OTHERS HAVE BUILT
                </button>
              </div>
-             
              <div className="bg-[#1a1a1a] border border-gray-800 rounded-full px-8 py-5 flex justify-between items-center cursor-pointer hover:bg-[#222] transition-colors shadow-lg">
                <h4 className="text-white font-bold text-[16px]">Ship faster for less</h4>
                <span className="text-gray-500 font-light text-2xl leading-none">+</span>
              </div>
-
              <div className="bg-[#1a1a1a] border border-gray-800 rounded-full px-8 py-5 flex justify-between items-center cursor-pointer hover:bg-[#222] transition-colors shadow-lg">
                <h4 className="text-white font-bold text-[16px]">Build for the future</h4>
                <span className="text-gray-500 font-light text-2xl leading-none">+</span>

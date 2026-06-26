@@ -1,0 +1,15 @@
+--- internal/transcoder/ffmpeg.go
++++ internal/transcoder/ffmpeg.go
+@@ -35,11 +35,10 @@
+ 		filepath.Join(workDir, "stream_%v.m3u8"),
+ 	)
+ 	_ = cmd
++	cmd.Dir = workDir
+ 	log.Printf("Running FFMPEG: %s", cmd.String())
+-	err := cmd.Run()
++	out, err := cmd.CombinedOutput()
+ 	if err != nil {
+-		return "", fmt.Errorf("ffmpeg failed: %w", err)
++		return "", fmt.Errorf("ffmpeg failed: %w, output: %s", err, string(out))
+ 	}
+ 	log.Printf("Generated HLS files in %s. Uploading to Azure Blob Container...", workDir)

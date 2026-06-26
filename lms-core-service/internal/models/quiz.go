@@ -1,13 +1,7 @@
 package models
-
 import (
 	"time"
 )
-
-// =========================
-// QUIZ + AI HELP
-// =========================
-
 type Quiz struct {
 	ID              uint      `gorm:"primaryKey;autoIncrement"`
 	TenantID        uint      `gorm:"not null"`
@@ -21,13 +15,11 @@ type Quiz struct {
 	IsAiGenerated   bool      `gorm:"default:false"`
 	AiPrompt        string    `gorm:"type:text"`
 	CreatedAt       time.Time `gorm:"autoCreateTime"`
-
 	Tenant  Tenant        `gorm:"foreignKey:TenantID"`
 	Course  Course        `gorm:"foreignKey:CourseID"`
 	Module  *CourseModule `gorm:"foreignKey:ModuleID"`
 	Teacher TenantStaff   `gorm:"foreignKey:TeacherID"`
 }
-
 type QuizQuestion struct {
 	ID            uint   `gorm:"primaryKey;autoIncrement"`
 	QuizID        uint   `gorm:"not null"`
@@ -38,10 +30,8 @@ type QuizQuestion struct {
 	Marks         int    `gorm:"default:1"`
 	Position      int    `gorm:"default:0"`
 	IsAiGenerated bool   `gorm:"default:false"`
-
 	Quiz Quiz `gorm:"foreignKey:QuizID"`
 }
-
 type QuizAttempt struct {
 	ID          uint       `gorm:"primaryKey;autoIncrement"`
 	QuizID      uint       `gorm:"not null"`
@@ -50,11 +40,9 @@ type QuizAttempt struct {
 	SubmittedAt *time.Time
 	Score       *int
 	Status      string     `gorm:"type:varchar(20);default:'in_progress'"`
-
 	Quiz    Quiz `gorm:"foreignKey:QuizID"`
 	Student User `gorm:"foreignKey:StudentID"`
 }
-
 type QuizAnswer struct {
 	ID            uint   `gorm:"primaryKey;autoIncrement"`
 	AttemptID     uint   `gorm:"not null;uniqueIndex:idx_attempt_question"`
@@ -62,7 +50,6 @@ type QuizAnswer struct {
 	AnswerText    string `gorm:"type:text"`
 	IsCorrect     *bool
 	MarksObtained int    `gorm:"default:0"`
-
 	Attempt  QuizAttempt  `gorm:"foreignKey:AttemptID"`
 	Question QuizQuestion `gorm:"foreignKey:QuestionID"`
 }

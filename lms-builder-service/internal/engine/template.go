@@ -1,24 +1,17 @@
 package engine
-
 import (
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
-
 	"lms-builder-service/internal/azureblob"
 )
-
 func BuildTemplateSite(tenantSlug string, academyName string, color string) error {
 	log.Printf("Starting Template Build for %s", tenantSlug)
-
-	// Create temp directory
 	workDir := filepath.Join(os.TempDir(), "builder_template_"+tenantSlug)
 	os.MkdirAll(workDir, os.ModePerm)
 	defer os.RemoveAll(workDir)
-
-	// Premium Dark Mode Template
 	htmlTemplate := `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,24 +70,17 @@ func BuildTemplateSite(tenantSlug string, academyName string, color string) erro
     </div>
 </body>
 </html>`
-
-	// Inject variables
 	htmlTemplate = strings.ReplaceAll(htmlTemplate, "{{ACADEMY_NAME}}", academyName)
 	htmlTemplate = strings.ReplaceAll(htmlTemplate, "{{PRIMARY_COLOR}}", color)
-
-	// Save to disk
 	indexPath := filepath.Join(workDir, "index.html")
 	err := os.WriteFile(indexPath, []byte(htmlTemplate), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write template: %w", err)
 	}
-
-	// Upload to S3
 	err = azureblob.UploadDirectory(tenantSlug, workDir)
 	if err != nil {
 		return fmt.Errorf("failed to upload template to S3: %w", err)
 	}
-
 	log.Printf("Template Build Successful for %s", tenantSlug)
 	return nil
 }

@@ -1,13 +1,7 @@
 package models
-
 import (
 	"time"
 )
-
-// =========================
-// IDENTITY & TENANT
-// =========================
-
 type User struct {
 	ID              uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	FirstName       string    `gorm:"type:varchar(100);not null" json:"first_name"`
@@ -25,7 +19,6 @@ type User struct {
 	CreatedAt       time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt       time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
-
 type RefreshToken struct {
 	ID          uint       `gorm:"primaryKey;autoIncrement"`
 	UserID      uint       `gorm:"not null;index"`
@@ -38,7 +31,6 @@ type RefreshToken struct {
 	RevokedAt   *time.Time
 	CreatedAt   time.Time  `gorm:"autoCreateTime"`
 }
-
 type Tenant struct {
 	ID               uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	OwnerUserID      uint      `gorm:"not null" json:"owner_user_id"`
@@ -58,35 +50,23 @@ type Tenant struct {
 	CreatedAt        time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt        time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
-
-// =========================
-// RBAC
-// =========================
-
 type Role struct {
 	ID          uint      `gorm:"primaryKey;autoIncrement"`
 	Name        string    `gorm:"type:varchar(50);uniqueIndex;not null"`
 	Description string    `gorm:"type:text"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 }
-
 type Permission struct {
 	ID          uint   `gorm:"primaryKey;autoIncrement"`
 	Name        string `gorm:"type:varchar(100);uniqueIndex;not null"`
 	Description string `gorm:"type:text"`
 }
-
 type RolePermission struct {
 	RoleID       uint       `gorm:"primaryKey;autoIncrement:false"`
 	PermissionID uint       `gorm:"primaryKey;autoIncrement:false"`
 	Role         Role       `gorm:"foreignKey:RoleID"`
 	Permission   Permission `gorm:"foreignKey:PermissionID"`
 }
-
-// =========================
-// STAFF & INVITATIONS
-// =========================
-
 type TenantStaff struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement"`
 	TenantID  uint      `gorm:"not null;uniqueIndex:idx_tenant_user"`
@@ -96,13 +76,11 @@ type TenantStaff struct {
 	IsActive  bool      `gorm:"default:true"`
 	UpiID     string    `gorm:"type:varchar(150)"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
-
 	Tenant     Tenant `gorm:"foreignKey:TenantID"`
 	User       User   `gorm:"foreignKey:UserID"`
 	Role       Role   `gorm:"foreignKey:RoleID"`
 	InvitedByU *User  `gorm:"foreignKey:InvitedBy"`
 }
-
 type Invitation struct {
 	ID          uint      `gorm:"primaryKey;autoIncrement"`
 	TenantID    uint      `gorm:"not null"`
@@ -113,7 +91,6 @@ type Invitation struct {
 	ExpiresAt   *time.Time
 	Accepted    bool      `gorm:"default:false"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
-
 	Tenant Tenant  `gorm:"foreignKey:TenantID"`
 	Role   Role    `gorm:"foreignKey:RoleID"`
 	Course *Course `gorm:"foreignKey:CourseID"`

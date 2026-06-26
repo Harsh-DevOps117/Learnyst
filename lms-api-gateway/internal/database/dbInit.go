@@ -1,18 +1,13 @@
 package db
-
 import (
 	"lms-api-gateway/internal/config"
 	"lms-api-gateway/internal/models"
 	"os"
-
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-
 func Initdatabase()(*gorm.DB,	error) {
-
 	DB_URL:=os.Getenv("DB_URI")
 	db,err:=gorm.Open(postgres.Open(DB_URL),&gorm.Config{})
 	if err != nil {
@@ -20,8 +15,6 @@ func Initdatabase()(*gorm.DB,	error) {
 	}
 	return db, nil
 }
-
-
 func Automigrate(db *gorm.DB) {
 	err := db.AutoMigrate(
 		models.User{},
@@ -35,11 +28,8 @@ func Automigrate(db *gorm.DB) {
 	if err != nil {
 		config.Log.Warn(err.Error())
 	}
-
-	// Automatically seed default roles
 	seedDefaultData(db)
 }
-
 func seedDefaultData(db *gorm.DB) {
 	roles := []models.Role{
 		{ID: 1, Name: "Tenant"},
@@ -47,15 +37,11 @@ func seedDefaultData(db *gorm.DB) {
 		{ID: 3, Name: "Student"},
 		{ID: 4, Name: "SuperAdmin"},
 	}
-
 	for _, role := range roles {
-		// Use FirstOrCreate to only insert if the role doesn't exist
 		if err := db.Where(models.Role{ID: role.ID}).FirstOrCreate(&role).Error; err != nil {
 			config.Log.Error("Failed to seed role: " + err.Error())
 		}
 	}
-	
-	// Seed SuperAdmin User
 	var superAdminCount int64
 	db.Model(&models.User{}).Where("email = ?", "superadmin@learnyst.com").Count(&superAdminCount)
 	if superAdminCount == 0 {
@@ -78,6 +64,5 @@ func seedDefaultData(db *gorm.DB) {
 			config.Log.Info("SuperAdmin seeded successfully (email: superadmin@learnyst.com, password: superadmin123)")
 		}
 	}
-
 	config.Log.Info("Default data seeded successfully")
 }

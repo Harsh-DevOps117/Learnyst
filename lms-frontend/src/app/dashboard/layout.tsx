@@ -1,119 +1,186 @@
 'use client';
-
-import { PrimaryNav } from '@/components/ui/PrimaryNav';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Suspense, useState, useRef } from 'react';
-import { Menu, X, LogOut } from 'lucide-react';
-
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-
+import { Suspense, useState, useEffect } from 'react';
+import { 
+  Menu, X, LogOut, Hexagon, Plus, Mail, LayoutDashboard, Activity, Users, 
+  User, Settings, GraduationCap, MonitorPlay, BookOpen, 
+  ClipboardList, HelpCircle, Search, Moon, Sun, CreditCard, Palette, Bot, Code
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-
+import { coreApi } from '@/api/client';
 function NavLinks({ currentTab, onNavigate }: { currentTab: string, onNavigate?: () => void }) {
   const { roleId } = useAuthStore();
-
   const getLinkClass = (tab: string) => {
-    return currentTab === tab 
-      ? "bg-[#1ED760] text-black px-3 py-2 font-semibold uppercase tracking-widest text-[12px] block border-2 border-black"
-      : "text-black px-3 py-2 font-semibold uppercase tracking-widest text-[12px] hover:bg-gray-200 transition-colors block border-2 border-transparent hover:border-black";
+    const isActive = currentTab === tab;
+    return isActive
+      ? "flex items-center gap-3 bg-black text-white px-4 py-2 rounded-full text-[13px] font-medium w-full transition-all"
+      : "flex items-center gap-3 text-gray-600 hover:text-black hover:bg-gray-100 px-4 py-2 rounded-full text-[13px] font-medium w-full transition-all";
   };
-
+  const IconWrapper = ({ children, tab }: { children: React.ReactNode, tab: string }) => {
+    const isActive = currentTab === tab;
+    return (
+      <div className={`${isActive ? 'text-white' : 'text-gray-500'} flex items-center justify-center`}>
+        {children}
+      </div>
+    );
+  };
   return (
     <>
       {roleId === 4 && (
         <>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Overview</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=global_analytics" onClick={onNavigate} className={getLinkClass('global_analytics')}>Platform Analytics</Link></li>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Overview</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/dashboard?tab=global_analytics" onClick={onNavigate} className={getLinkClass('global_analytics')}>
+                  <IconWrapper tab="global_analytics"><Activity size={16} strokeWidth={2.5} /></IconWrapper>
+                  Platform Analytics
+                </Link>
+              </li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Manage</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=all_users" onClick={onNavigate} className={getLinkClass('all_users')}>All Users</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Account</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=profile" onClick={onNavigate} className={getLinkClass('profile')}>Profile</Link></li>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Manage</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/dashboard?tab=all_users" onClick={onNavigate} className={getLinkClass('all_users')}>
+                  <IconWrapper tab="all_users"><Users size={16} strokeWidth={2.5} /></IconWrapper>
+                  All Users
+                </Link>
+              </li>
             </ul>
           </div>
         </>
       )}
-
       {roleId === 1 && (
         <>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Overview</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=academy" onClick={onNavigate} className={getLinkClass('academy')}>My Academy</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=templates" onClick={onNavigate} className={getLinkClass('templates')}>Website Theme</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=performance" onClick={onNavigate} className={getLinkClass('performance')}>Performance</Link></li>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Overview</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/dashboard?tab=academy" onClick={onNavigate} className={getLinkClass('academy')}>
+                  <IconWrapper tab="academy"><LayoutDashboard size={16} strokeWidth={2.5} /></IconWrapper>
+                  My Academy
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=templates" onClick={onNavigate} className={getLinkClass('templates')}>
+                  <IconWrapper tab="templates"><Palette size={16} strokeWidth={2.5} /></IconWrapper>
+                  Website Theme
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=performance" onClick={onNavigate} className={getLinkClass('performance')}>
+                  <IconWrapper tab="performance"><Activity size={16} strokeWidth={2.5} /></IconWrapper>
+                  Performance
+                </Link>
+              </li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Manage</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=courses" onClick={onNavigate} className={getLinkClass('courses')}>Courses</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=teachers" onClick={onNavigate} className={getLinkClass('teachers')}>Teachers</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=students" onClick={onNavigate} className={getLinkClass('students')}>Students</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=subscriptions" onClick={onNavigate} className={getLinkClass('subscriptions')}>Subscriptions</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Account</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=profile" onClick={onNavigate} className={getLinkClass('profile')}>Profile</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=settings" onClick={onNavigate} className={getLinkClass('settings')}>Settings</Link></li>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Manage</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/dashboard?tab=courses" onClick={onNavigate} className={getLinkClass('courses')}>
+                  <IconWrapper tab="courses"><BookOpen size={16} strokeWidth={2.5} /></IconWrapper>
+                  Courses
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=teachers" onClick={onNavigate} className={getLinkClass('teachers')}>
+                  <IconWrapper tab="teachers"><GraduationCap size={16} strokeWidth={2.5} /></IconWrapper>
+                  Teachers
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=students" onClick={onNavigate} className={getLinkClass('students')}>
+                  <IconWrapper tab="students"><Users size={16} strokeWidth={2.5} /></IconWrapper>
+                  Students
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=subscriptions" onClick={onNavigate} className={getLinkClass('subscriptions')}>
+                  <IconWrapper tab="subscriptions"><CreditCard size={16} strokeWidth={2.5} /></IconWrapper>
+                  Subscriptions
+                </Link>
+              </li>
             </ul>
           </div>
         </>
       )}
-
       {roleId === 2 && (
         <>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Teaching</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=courses" onClick={onNavigate} className={getLinkClass('courses')}>My Courses</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=assignments" onClick={onNavigate} className={getLinkClass('assignments')}>Assignments</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=students" onClick={onNavigate} className={getLinkClass('students')}>Students</Link></li>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Teaching</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/dashboard?tab=courses" onClick={onNavigate} className={getLinkClass('courses')}>
+                  <IconWrapper tab="courses"><MonitorPlay size={16} strokeWidth={2.5} /></IconWrapper>
+                  My Courses
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=assignments" onClick={onNavigate} className={getLinkClass('assignments')}>
+                  <IconWrapper tab="assignments"><ClipboardList size={16} strokeWidth={2.5} /></IconWrapper>
+                  Assignments
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=students" onClick={onNavigate} className={getLinkClass('students')}>
+                  <IconWrapper tab="students"><Users size={16} strokeWidth={2.5} /></IconWrapper>
+                  Students
+                </Link>
+              </li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Account</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=profile" onClick={onNavigate} className={getLinkClass('profile')}>Profile</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=settings" onClick={onNavigate} className={getLinkClass('settings')}>Payout Settings</Link></li>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Tools</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/dashboard?tab=ai_tutor" onClick={onNavigate} className={getLinkClass('ai_tutor')}>
+                  <IconWrapper tab="ai_tutor"><Bot size={16} strokeWidth={2.5} /></IconWrapper>
+                  AI Tutor (Course Help)
+                </Link>
+              </li>
             </ul>
           </div>
         </>
       )}
-
       {roleId === 3 && (
         <>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">My Learning</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=learning" onClick={onNavigate} className={getLinkClass('learning')}>Courses</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=assignments" onClick={onNavigate} className={getLinkClass('assignments')}>Assignments</Link></li>
-              <li className="w-full"><Link href="/dashboard?tab=quizzes" onClick={onNavigate} className={getLinkClass('quizzes')}>Quizzes</Link></li>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">My Learning</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/dashboard?tab=learning" onClick={onNavigate} className={getLinkClass('learning')}>
+                  <IconWrapper tab="learning"><BookOpen size={16} strokeWidth={2.5} /></IconWrapper>
+                  Courses
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=assignments" onClick={onNavigate} className={getLinkClass('assignments')}>
+                  <IconWrapper tab="assignments"><ClipboardList size={16} strokeWidth={2.5} /></IconWrapper>
+                  Assignments
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard?tab=quizzes" onClick={onNavigate} className={getLinkClass('quizzes')}>
+                  <IconWrapper tab="quizzes"><Activity size={16} strokeWidth={2.5} /></IconWrapper>
+                  Quizzes
+                </Link>
+              </li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Tools</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=ai_tutor" onClick={onNavigate} className={getLinkClass('ai_tutor')}>AI Tutor</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-ui font-bold text-[16px] text-black mb-4 uppercase tracking-widest border-b-2 border-black pb-2">Account</h3>
-            <ul className="space-y-3 flex flex-col items-start w-full">
-              <li className="w-full"><Link href="/dashboard?tab=profile" onClick={onNavigate} className={getLinkClass('profile')}>Profile</Link></li>
+          <div className="mb-6">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-4">Tools</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link href="/dashboard?tab=ai_tutor" onClick={onNavigate} className={getLinkClass('ai_tutor')}>
+                  <IconWrapper tab="ai_tutor"><Bot size={16} strokeWidth={2.5} /></IconWrapper>
+                  AI Tutor
+                </Link>
+              </li>
             </ul>
           </div>
         </>
@@ -121,111 +188,147 @@ function NavLinks({ currentTab, onNavigate }: { currentTab: string, onNavigate?:
     </>
   );
 }
-
 function Sidebar() {
   const searchParams = useSearchParams();
-  const { roleId, logout } = useAuthStore();
+  const { roleId, logout, userId } = useAuthStore();
   const currentTab = searchParams?.get('tab') || (roleId === 4 ? 'global_analytics' : roleId === 1 ? 'academy' : roleId === 2 ? 'courses' : 'learning');
-  const sidebarRef = useRef<HTMLDivElement>(null);
-
   const router = useRouter();
-
-  useGSAP(() => {
-    if (sidebarRef.current) {
-      const items = sidebarRef.current.querySelectorAll('li');
-      gsap.fromTo(
-        items,
-        { x: -20, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power2.out' }
-      );
+  const [profile, setProfile] = useState<any>(null);
+  useEffect(() => {
+    if (userId) {
+      coreApi.get(`/users/${userId}`).then(res => setProfile(res.data)).catch(console.error);
     }
-  }, { scope: sidebarRef });
-
+  }, [userId]);
   const handleLogout = () => {
     logout();
     router.push('/login');
   };
-
+  const getLinkClass = (tab: string) => {
+    const isActive = currentTab === tab;
+    return isActive
+      ? "flex items-center gap-3 bg-black text-white px-4 py-2 rounded-full text-[13px] font-medium w-full transition-all"
+      : "flex items-center gap-3 text-gray-600 hover:text-black hover:bg-gray-100 px-4 py-2 rounded-full text-[13px] font-medium w-full transition-all";
+  };
   return (
-    <aside ref={sidebarRef} className="w-[260px] hidden lg:flex flex-col border-r-2 border-black bg-white px-6 py-8">
-      <nav className="space-y-8 flex-1">
+    <aside className="w-[260px] hidden lg:flex flex-col bg-[#fafafa] border-r border-gray-200">
+      {}
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="font-display text-[22px] font-bold text-black tracking-tight px-2 py-1">Learnyst</span>
+        </div>
+      </div>
+      {}
+      <div className="px-4 pb-6 flex items-center gap-2">
+        <button 
+          onClick={() => router.push('/dashboard?tab=courses&action=create_course')}
+          className="flex-1 flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+        >
+          <Plus size={16} />
+          <span>Quick Create</span>
+        </button>
+        <button className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors text-gray-600">
+          <Mail size={16} />
+        </button>
+      </div>
+      {}
+      <nav className="flex-1 overflow-y-auto px-2">
         <NavLinks currentTab={currentTab} />
       </nav>
-      <div className="mt-8 border-t-2 border-black pt-6">
-        <button onClick={handleLogout} className="flex items-center justify-center gap-2 text-white bg-red-600 px-3 py-3 font-semibold uppercase tracking-widest text-[12px] hover:bg-red-700 transition-colors w-full border-2 border-black">
+      {}
+      <div className="p-4 flex items-center justify-between hover:bg-gray-100 cursor-pointer transition-colors mt-auto">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            <User size={16} className="text-gray-500" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[13px] font-bold text-gray-900 leading-tight">{profile?.first_name || 'User'}</span>
+            <span className="text-[11px] text-gray-500 truncate max-w-[120px]">{profile?.email || 'user@example.com'}</span>
+          </div>
+        </div>
+        <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors">
           <LogOut size={16} />
-          Logout
         </button>
       </div>
     </aside>
   );
 }
-
 function MobileDashboardNav() {
   const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
   const { roleId, logout } = useAuthStore();
   const router = useRouter();
   const currentTab = searchParams?.get('tab') || (roleId === 4 ? 'global_analytics' : roleId === 1 ? 'academy' : roleId === 2 ? 'courses' : 'learning');
-
   const handleLogout = () => {
     logout();
     router.push('/login');
   };
-
   return (
-    <div className="lg:hidden border-b-2 border-black bg-white relative z-50">
+    <div className="lg:hidden border-b border-gray-200 bg-white relative z-50">
       <div className="flex items-center justify-between p-4">
-        <div className="font-display text-[24px] font-bold uppercase tracking-widest">
-          Learnyst
+        <div className="flex items-center gap-2">
+          <span className="font-display text-[20px] font-bold tracking-tight text-black px-2 py-1">Learnyst</span>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={handleLogout} className="p-2 border-2 border-black text-white bg-red-600 hover:bg-red-700 transition-colors" title="Logout">
-            <LogOut size={20} />
-          </button>
-          <button onClick={() => setIsOpen(!isOpen)} className="p-2 border-2 border-black hover:bg-gray-100 transition-colors">
+          <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors">
             {isOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
-      
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white border-b-2 border-black p-6 ">
-           <nav className="space-y-8">
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 p-4 shadow-lg max-h-[80vh] overflow-y-auto">
+           <nav className="space-y-4">
              <NavLinks currentTab={currentTab} onNavigate={() => setIsOpen(false)} />
+             <div className="pt-4 border-t border-gray-100">
+               <button onClick={handleLogout} className="flex items-center gap-3 text-red-600 hover:bg-red-50 px-4 py-2 rounded-full text-[13px] font-medium w-full transition-all">
+                 <LogOut size={16} />
+                 Sign Out
+               </button>
+             </div>
            </nav>
         </div>
       )}
     </div>
   );
 }
-
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const searchParams = useSearchParams();
   const { roleId } = useAuthStore();
+  const currentTab = searchParams?.get('tab') || (roleId === 4 ? 'global_analytics' : roleId === 1 ? 'academy' : roleId === 2 ? 'courses' : 'learning');
+  const getTitle = () => {
+    if (currentTab === 'global_analytics') return 'Platform Analytics';
+    if (currentTab === 'academy') return 'My Academy';
+    if (currentTab === 'courses') return 'Courses';
+    if (currentTab === 'learning') return 'My Learning';
+    return currentTab.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
   return (
-    <div className="min-h-screen bg-white bg-graph-paper-light flex flex-col text-black font-ui">
-      
-      {/* Mobile Navbar specific to the dashboard (hidden on large screens) */}
-      <Suspense fallback={<div className="h-16 bg-white border-b-2 border-black lg:hidden" />}>
-        <MobileDashboardNav />
+    <div className="min-h-screen bg-white flex text-[#111111] font-ui">
+      {}
+      <Suspense fallback={<aside className="w-[260px] hidden lg:block border-r border-gray-200 bg-[#fafafa]" />}>
+        <Sidebar />
       </Suspense>
-
-      <div className="flex-1 flex w-full bg-white relative border-x-0 border-black md:border-x-2">
-        <Suspense fallback={<aside className="w-[260px] hidden lg:block border-r-2 border-black px-6 py-8" />}>
-          <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        {}
+        <Suspense fallback={<div className="h-16 bg-white border-b border-gray-200 lg:hidden" />}>
+          <MobileDashboardNav />
         </Suspense>
-
-        
-        {/* Main Content */}
-        <main className="flex-1 p-4 md:py-8 md:px-6 overflow-x-hidden">
+        {}
+        <header className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white hidden lg:flex sticky top-0 z-10">
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-semibold text-gray-800">{getTitle()}</h1>
+          </div>
+          <div className="flex items-center gap-4">
+          </div>
+        </header>
+        {}
+        <main className="flex-1 p-4 md:p-8 bg-white overflow-x-hidden overflow-y-auto">
           {children}
         </main>
       </div>
     </div>
   );
 }
-

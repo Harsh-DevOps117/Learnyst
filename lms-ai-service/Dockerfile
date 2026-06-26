@@ -2,7 +2,6 @@ FROM golang:1.26.3-alpine
 
 WORKDIR /app
 
-# Ca-certificates are required to make HTTPS requests to the Groq API
 RUN apk add --no-cache ca-certificates
 
 COPY go.mod go.sum ./

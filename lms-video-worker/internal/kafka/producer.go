@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"time"
 
 	"github.com/IBM/sarama"
 )
@@ -22,10 +23,13 @@ func InitProducer() {
 	config.Producer.Retry.Max = 5
 
 	var err error
-	Producer, err = sarama.NewSyncProducer([]string{broker}, config)
-	if err != nil {
-		log.Println("WARNING: Failed to initialize Kafka Producer:", err)
-		return
+	for {
+		Producer, err = sarama.NewSyncProducer([]string{broker}, config)
+		if err == nil {
+			break
+		}
+		log.Printf("Error creating Kafka Producer client: %v, retrying in 5 seconds...", err)
+		time.Sleep(5 * time.Second)
 	}
 	log.Println("Kafka Producer initialized successfully")
 }

@@ -1,5 +1,4 @@
 import React from 'react';
-
 interface ProductCardProps {
   name: string;
   subtitle: string;
@@ -10,7 +9,6 @@ interface ProductCardProps {
   className?: string;
   featured?: boolean;
 }
-
 export const ProductCard = ({
   name,
   subtitle,
@@ -29,7 +27,6 @@ export const ProductCard = ({
         ${className}`}
       onClick={onBuy}
     >
-      {/* Top Header Row (Icon + Name) */}
       <div className="flex items-center gap-4 mb-[24px]">
         {icon && (
           <div className="w-[40px] h-[40px] flex items-center justify-center border border-[rgba(255,255,255,0.1)] bg-[var(--color-surface-1)] text-[var(--color-primary)]">
@@ -40,15 +37,11 @@ export const ProductCard = ({
           {name}
         </h3>
       </div>
-
-      {/* Subtitle */}
       <div className="flex-1">
         <p className="font-ui text-[16px] text-[var(--color-ink-muted)] leading-relaxed mb-[32px]">
           {subtitle}
         </p>
       </div>
-
-      {/* Pricing & Code Snippet / Action Area */}
       <div className="flex items-end justify-between mt-auto border-t border-[rgba(255,255,255,0.1)] pt-[24px]">
         <div className="flex flex-col gap-1">
           <span className="font-mono text-[12px] text-[var(--color-ink-muted)] uppercase tracking-wider">
@@ -65,8 +58,6 @@ export const ProductCard = ({
             )}
           </div>
         </div>
-        
-        {/* Terminal Arrow */}
         <div className="text-[var(--color-primary)] font-mono text-[20px] font-bold">
           {'>_'}
         </div>

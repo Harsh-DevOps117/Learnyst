@@ -1,29 +1,23 @@
 package handlers
-
 import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
 	"time"
-
 	"github.com/gin-gonic/gin"
-
 	"lms-core-service/internal/database"
 	"lms-core-service/internal/mail"
 	"lms-core-service/internal/models"
 )
-
 type SendInvitationRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	RoleID   uint   `json:"role_id" binding:"required"`
 	CourseID *uint  `json:"course_id"`
 }
-
 type AcceptInvitationRequest struct {
 	Token  string `json:"token" binding:"required"`
-	UserID uint   `json:"user_id" binding:"required"` // User must be logged in/signed up to accept
+	UserID uint   `json:"user_id" binding:"required"` 
 }
-
 func generateSecureToken() string {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
@@ -31,29 +25,22 @@ func generateSecureToken() string {
 	}
 	return hex.EncodeToString(bytes)
 }
-
 func SendInvitationHandler(c *gin.Context) {
 	tenantID := c.Param("tenant_id")
-	
 	var req SendInvitationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Fetch Tenant to get Academy Name and Custom Domain
 	var tenant models.Tenant
 	if err := database.DB.First(&tenant, tenantID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Tenant not found"})
 		return
 	}
-
 	domain := tenant.CustomDomain
 	if domain == "" {
-		domain = tenant.AcademySlug + ".learnyst.com" // Fallback to subdomain if no custom domain
+		domain = tenant.AcademySlug + ".learnyst.com" 
 	}
-
-	// Verify Course exists if provided
 	if req.CourseID != nil {
 		var course models.Course
 		if err := database.DB.Where("id = ? AND tenant_id = ?", *req.CourseID, tenantID).First(&course).Error; err != nil {
@@ -61,11 +48,8 @@ func SendInvitationHandler(c *gin.Context) {
 			return
 		}
 	}
-
-	// Generate Token & Save Invitation
 	token := generateSecureToken()
 	expiry := time.Now().Add(7 * 24 * time.Hour)
-
 	invitation := models.Invitation{
 		TenantID:    tenant.ID,
 		Email:       req.Email,
@@ -74,66 +58,49 @@ func SendInvitationHandler(c *gin.Context) {
 		InviteToken: token,
 		ExpiresAt:   &expiry,
 	}
-
 	if err := database.DB.Create(&invitation).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create invitation"})
 		return
 	}
-
-	// Send Email
 	go func() {
 		err := mail.SendInvitationEmail(req.Email, tenant.AcademyName, domain, token)
 		if err != nil {
-			// Log error but don't fail the request since invitation was saved
 			println("Failed to send email:", err.Error())
 		}
 	}()
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Invitation sent successfully",
 		"invitation_id": invitation.ID,
 		"invite_token": token,
 	})
 }
-
 func AcceptInvitationHandler(c *gin.Context) {
 	var req AcceptInvitationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Find the invitation
 	var invitation models.Invitation
 	if err := database.DB.Where("invite_token = ? AND accepted = ?", req.Token, false).First(&invitation).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or already accepted invitation token"})
 		return
 	}
-
 	if invitation.ExpiresAt != nil && invitation.ExpiresAt.Before(time.Now()) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invitation token has expired"})
 		return
 	}
-
-	// Validate User exists
 	var user models.User
 	if err := database.DB.First(&user, req.UserID).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
 		return
 	}
-
-	// Use Transaction for safety
 	tx := database.DB.Begin()
-
-	// 1. Mark as accepted
 	invitation.Accepted = true
 	if err := tx.Save(&invitation).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update invitation"})
 		return
 	}
-
-	// 2. Create TenantStaff record
 	staff := models.TenantStaff{
 		TenantID: invitation.TenantID,
 		UserID:   user.ID,
@@ -145,8 +112,6 @@ func AcceptInvitationHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign staff role. They might already be staff."})
 		return
 	}
-
-	// 3. Auto-assign Course if specified
 	if invitation.CourseID != nil {
 		courseTeacher := models.CourseTeacher{
 			TenantID:  invitation.TenantID,
@@ -159,9 +124,7 @@ func AcceptInvitationHandler(c *gin.Context) {
 			return
 		}
 	}
-
 	tx.Commit()
-
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Invitation accepted successfully",
 		"tenant_id": invitation.TenantID,

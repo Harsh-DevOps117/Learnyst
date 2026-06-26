@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -7,23 +6,19 @@ import { Input } from '@/components/ui/Input';
 import { authApi } from '@/api/client';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
-
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const verified = searchParams.get('verified') === 'true';
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const setAuth = useAuthStore((state) => state.setAuth);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
       let device_name = "Unknown Device";
       if (typeof navigator !== "undefined") {
@@ -35,22 +30,13 @@ function LoginForm() {
         else if (/Linux/i.test(ua)) device_name = "Linux Desktop";
         else device_name = "Web Browser";
       }
-
       const response = await authApi.post('/login', {
         email,
         password,
         device_name
       });
-
-      // Based on dtos.AuthResponse mapping
-      // type AuthResponse struct { Message string, UserID uint, AccessToken string, ... }
-      // the role is not directly returned here unless modified. Wait, the previous code had role_id.
-      // I will map what is available.
       const { access_token, user_id, role_id } = response.data;
-      // We will parse role_id if it exists, otherwise default to a fallback (or use jwt decode)
       setAuth(access_token, role_id || 1, user_id);
-      
-      // Redirect to dashboard
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Invalid credentials.');
@@ -58,7 +44,6 @@ function LoginForm() {
       setLoading(false);
     }
   };
-
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
       {verified && (
@@ -89,11 +74,9 @@ function LoginForm() {
           className="!bg-white !text-black !rounded-none !border-2 !border-black focus:!ring-0 focus:!border-gray-500"
         />
       </div>
-
       <Button type="submit" variant="primary" className="w-full !rounded-none !bg-black !text-white hover:!bg-gray-800 border-2 border-black" disabled={loading}>
         {loading ? 'SIGNING IN...' : 'SIGN IN'}
       </Button>
-
       <div className="text-center mt-4">
         <p className="font-ui text-[14px] text-gray-500 font-medium">
           Don't have an account?{' '}
@@ -105,7 +88,6 @@ function LoginForm() {
     </form>
   );
 }
-
 export default function LoginPage() {
   return (
     <Suspense fallback={<div className="text-center mt-8 font-ui">Loading...</div>}>

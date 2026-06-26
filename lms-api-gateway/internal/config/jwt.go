@@ -2,30 +2,25 @@ package config
 
 import (
 	"errors"
+	"log"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
 type JWTClaims struct {
 	UserID uint `json:"user_id"`
 	RoleID int    `json:"role_id"`
 	jwt.RegisteredClaims
 }
-
 func getJWTSecret() []byte {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		// Fallback for development if not set
-		return []byte("super-secret-jwt-key")
+		log.Fatal("JWT_SECRET environment variable is required")
 	}
 	return []byte(secret)
 }
-
-// GenerateTokens generates both an access token and a refresh token
 func GenerateTokens(userID uint, roleID int) (accessToken string, refreshToken string, err error) {
-	// Access Token - expires in 15 minutes
 	accessClaims := JWTClaims{
 		UserID: userID,
 		RoleID: roleID,
@@ -40,7 +35,6 @@ func GenerateTokens(userID uint, roleID int) (accessToken string, refreshToken s
 		return "", "", err
 	}
 
-	// Refresh Token - expires in 7 days
 	refreshClaims := JWTClaims{
 		UserID: userID,
 		RoleID: roleID,
@@ -54,10 +48,8 @@ func GenerateTokens(userID uint, roleID int) (accessToken string, refreshToken s
 	if err != nil {
 		return "", "", err
 	}
-
 	return accessToken, refreshToken, nil
 }
-
 // ValidateToken parses and validates a JWT token
 func ValidateToken(tokenStr string) (*JWTClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -66,14 +58,11 @@ func ValidateToken(tokenStr string) (*JWTClaims, error) {
 		}
 		return getJWTSecret(), nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
-
 	if claims, ok := token.Claims.(*JWTClaims); ok && token.Valid {
 		return claims, nil
 	}
-
 	return nil, errors.New("invalid token")
 }

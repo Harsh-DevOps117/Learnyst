@@ -1,35 +1,27 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { coreApi } from '@/api/client';
 import { useAuthStore } from '@/store/authStore';
 import { BookOpen, PlayCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
-
 export default function TenantDashboard() {
   const { slug } = useParams();
   const router = useRouter();
   const { userId, token, logout } = useAuthStore();
-  
   const [tenant, setTenant] = useState<any>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     if (!token || !userId) {
       router.push(`/${slug}/login`);
       return;
     }
-
     const fetchData = async () => {
       try {
-        // Fetch tenant details first
         const tenantRes = await coreApi.get(`/tenants/slug/${slug}`);
         const tenantData = tenantRes.data.tenant;
         setTenant(tenantData);
-
-        // Fetch enrolled courses for this student and this tenant
         const coursesRes = await coreApi.get(`/students/${userId}/courses?tenant_id=${tenantData.id}`);
         setEnrolledCourses(coursesRes.data || []);
       } catch (err) {
@@ -38,63 +30,59 @@ export default function TenantDashboard() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [slug, userId, token, router]);
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--color-ada-bg)] flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
-
   return (
-    <div className="min-h-screen bg-[#fafafa] font-ui text-[#111111]">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 md:px-12 sticky top-0 z-50">
-        <div className="flex items-center gap-4 cursor-pointer" onClick={() => router.push(`/${slug}`)}>
-          {tenant?.logo_url ? (
-            <img src={tenant.logo_url} alt="Logo" className="h-8 w-auto object-contain" />
-          ) : (
-            <span className="font-display text-[18px] font-bold tracking-tight text-gray-900">
-              {tenant?.academy_name || 'Academy'}
-            </span>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-black">
-            Go to Quizzes (Main Site)
-          </Link>
-          <button 
-            onClick={() => {
-              logout();
-              router.push(`/${slug}/login`);
-            }} 
-            className="text-sm font-bold text-red-600 hover:text-red-700"
-          >
-            Sign Out
-          </button>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-[1200px] mx-auto px-6 py-12">
-        <h1 className="text-3xl font-display font-bold mb-2">My Learning</h1>
-        <p className="text-gray-500 mb-10">Pick up right where you left off.</p>
-
+    <div className="min-h-screen bg-[var(--color-ada-bg)] ada-body text-[#111]">
+      {}
+      <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 md:px-8 md:pt-6">
+        <nav className="max-w-[1440px] mx-auto bg-white border-2 border-[#111] shadow-[4px_4px_0px_#111] rounded-full h-16 flex items-center justify-between px-6 transition-all duration-300">
+          <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => router.push(`/${slug}`)}>
+            {tenant?.logo_url ? (
+              <img src={tenant.logo_url} alt="Logo" className="h-8 w-auto object-contain" />
+            ) : (
+              <span className="ada-heading text-[20px] font-bold tracking-tight text-[#111]">
+                {tenant?.academy_name || 'Academy'}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/dashboard" className="text-[14px] font-medium text-[#111] hover:text-[var(--color-ada-primary)] transition-colors hidden sm:block">
+              Learnyst Hub
+            </Link>
+            <button 
+              onClick={() => {
+                logout();
+                router.push(`/${slug}/login`);
+              }} 
+              className="text-[14px] font-medium text-red-600 hover:text-red-700 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        </nav>
+      </div>
+      {}
+      <main className="max-w-[1200px] mx-auto px-6 pt-32 pb-12">
+        <h1 className="ada-heading text-[48px] md:text-[64px] text-[#111] mb-2 leading-none">My Learning</h1>
+        <p className="text-[#111] opacity-70 mb-12 text-[18px]">Pick up right where you left off.</p>
         {enrolledCourses.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-sm">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="text-gray-400" size={32} />
+          <div className="bg-white rounded-[20px] border-2 border-[#111] shadow-[8px_8px_0px_#111] p-16 text-center max-w-2xl mx-auto">
+            <div className="w-16 h-16 bg-[var(--color-ada-secondary)] border-2 border-[#111] shadow-[4px_4px_0px_#111] rounded-full flex items-center justify-center mx-auto mb-8">
+              <BookOpen className="text-[#111]" size={32} />
             </div>
-            <h3 className="text-xl font-bold mb-2">No courses yet</h3>
-            <p className="text-gray-500 mb-6">You aren't enrolled in any courses in this academy.</p>
+            <h3 className="ada-heading text-[32px] text-[#111] mb-2">No courses yet</h3>
+            <p className="text-[#111] opacity-70 mb-8 text-[16px]">You aren't enrolled in any courses in this academy.</p>
             <button 
               onClick={() => router.push(`/${slug}#courses`)}
-              className="bg-black text-white px-6 py-2 rounded-full text-sm font-bold hover:bg-gray-800 transition-colors"
+              className="bg-[var(--color-ada-primary)] text-[#111] px-8 py-3 rounded-full text-[15px] font-medium border-2 border-[#111] shadow-[4px_4px_0px_#111] hover:-translate-y-1 hover:shadow-[6px_6px_0px_#111] active:scale-95 transition-all"
             >
               Browse Catalog
             </button>
@@ -104,9 +92,9 @@ export default function TenantDashboard() {
             {enrolledCourses.map((course) => (
               <div 
                 key={course.id} 
-                className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col"
+                className="bg-white rounded-[20px] border-2 border-[#111] shadow-[8px_8px_0px_#111] overflow-hidden hover:translate-y-1 hover:shadow-[4px_4px_0px_#111] transition-all duration-300 group flex flex-col"
               >
-                <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                <div className="aspect-video bg-[var(--color-ada-bg)] border-b-2 border-[#111] relative overflow-hidden">
                   {course.thumbnail_url ? (
                     <img 
                       src={course.thumbnail_url} 
@@ -114,7 +102,7 @@ export default function TenantDashboard() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-[#111]">
                       <BookOpen size={40} />
                     </div>
                   )}
@@ -122,22 +110,20 @@ export default function TenantDashboard() {
                     <PlayCircle size={48} className="text-white" />
                   </div>
                 </div>
-                
                 <div className="p-6 flex flex-col flex-grow">
-                  <div className="flex items-center gap-2 text-[12px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  <div className="flex items-center gap-2 text-[12px] font-medium text-[#111] opacity-70 mb-2">
                     <span>Course</span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 leading-tight line-clamp-2">
+                  <h3 className="ada-heading text-[24px] text-[#111] mb-2 leading-tight line-clamp-2 group-hover:text-[var(--color-ada-primary)] transition-colors">
                     {course.title}
                   </h3>
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-6 flex-grow">
+                  <p className="text-[15px] text-[#111] opacity-70 line-clamp-2 mb-6 flex-grow">
                     {course.description}
                   </p>
-                  
                   <div className="mt-auto">
                     <button 
                       onClick={() => router.push(`/${slug}/courses/${course.id}`)}
-                      className="w-full bg-gray-50 hover:bg-gray-100 text-black border border-gray-200 text-sm font-bold py-2.5 rounded-lg transition-colors"
+                      className="w-full bg-white hover:bg-[var(--color-ada-secondary)] text-[#111] border-2 border-[#111] text-[15px] font-medium py-3 rounded-full shadow-[2px_2px_0px_#111] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_#111] transition-all"
                     >
                       Continue Learning
                     </button>

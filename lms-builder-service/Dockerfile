@@ -1,6 +1,5 @@
 FROM golang:1.26.3-alpine
 
-# Install Node.js, npm, and zip utilities for custom React builds
 RUN apk add --no-cache nodejs npm zip unzip
 
 WORKDIR /app

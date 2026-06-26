@@ -1,12 +1,10 @@
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { authApi } from '@/api/client';
 import Link from 'next/link';
-
 export default function SignupPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -22,7 +20,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [locationLoading, setLocationLoading] = useState(false);
-
   const handleGetLocation = () => {
     setLocationLoading(true);
     if ("geolocation" in navigator) {
@@ -56,17 +53,14 @@ export default function SignupPage() {
       alert("Geolocation is not supported by your browser.");
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
       let role_id = 1;
       if (formData.role === 'Teacher') role_id = 2;
       if (formData.role === 'Student') role_id = 3;
-
       await authApi.post('/register/initiate', {
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -76,7 +70,6 @@ export default function SignupPage() {
         role_id: role_id,
         location: formData.location,
       });
-      // Pass phone to verify page
       const fullPhone = formData.countryCode + formData.phoneNumber;
       router.push(`/verify?phone=${encodeURIComponent(fullPhone)}`);
     } catch (err: any) {
@@ -85,7 +78,6 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
-
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
       {error && (
@@ -170,11 +162,9 @@ export default function SignupPage() {
           <option value="Student">Student</option>
         </select>
       </div>
-
       <Button type="submit" variant="primary" className="w-full !rounded-none !bg-black !text-white hover:!bg-gray-800 border-2 border-black" disabled={loading}>
         {loading ? 'INITIATING...' : 'SIGN UP'}
       </Button>
-
       <div className="text-center mt-4">
         <p className="font-ui text-[14px] text-gray-500 font-medium">
           Already have an account?{' '}

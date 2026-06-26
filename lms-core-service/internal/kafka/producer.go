@@ -2,8 +2,10 @@ package kafka
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/IBM/sarama"
 )
@@ -22,10 +24,13 @@ func InitProducer() {
 	config.Producer.Retry.Max = 5
 
 	var err error
-	Producer, err = sarama.NewSyncProducer([]string{broker}, config)
-	if err != nil {
-		log.Println("WARNING: Failed to initialize Kafka Producer:", err)
-		return
+	for {
+		Producer, err = sarama.NewSyncProducer([]string{broker}, config)
+		if err == nil {
+			break
+		}
+		log.Printf("WARNING: Failed to initialize Kafka Producer: %v, retrying in 5 seconds...", err)
+		time.Sleep(5 * time.Second)
 	}
 	log.Println("Kafka Producer initialized successfully")
 }
@@ -35,12 +40,13 @@ type VideoUploadedEvent struct {
 	CourseID uint   `json:"course_id"`
 	VideoID  uint   `json:"video_id"`
 	RawUrl   string `json:"raw_url"`
+	Slug     string `json:"slug"`
+	Phone    string `json:"phone"`
 }
 
 func PublishVideoUploaded(event VideoUploadedEvent) error {
 	if Producer == nil {
-		log.Println("Kafka Producer not initialized, skipping event")
-		return nil
+		return fmt.Errorf("Kafka Producer not initialized")
 	}
 
 	bytes, err := json.Marshal(event)

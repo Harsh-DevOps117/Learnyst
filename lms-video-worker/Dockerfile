@@ -1,6 +1,5 @@
 FROM golang:1.26.3-alpine
 
-# Install ffmpeg for adaptive streaming
 RUN apk add --no-cache ffmpeg
 
 WORKDIR /app
