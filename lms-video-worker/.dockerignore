@@ -1,0 +1,10 @@
+.git
+.env
+*.env
+*.log
+node_modules
+api
+main
+worker
+builder
+proxy

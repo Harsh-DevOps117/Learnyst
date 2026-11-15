@@ -1,25 +1,18 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
+import { create } from "zustand";
+import type { User } from "@/lib/types";
 interface AuthState {
-  token: string | null;
-  roleId: number | null;
-  userId: number | null;
-  setAuth: (token: string, roleId: number, userId: number) => void;
-  logout: () => void;
+  user: User | null;
+  ready: boolean;
+  workspaceVersion: number;
+  refreshWorkspace: () => void;
+  setUser: (user: User | null) => void;
 }
-
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      token: null,
-      roleId: null,
-      userId: null,
-      setAuth: (token, roleId, userId) => set({ token, roleId, userId }),
-      logout: () => set({ token: null, roleId: null, userId: null }),
-    }),
-    {
-      name: 'auth-storage',
-    }
-  )
-);
+// The session credential is an HttpOnly cookie; only public profile data lives here.
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  ready: false,
+  workspaceVersion: 0,
+  refreshWorkspace: () =>
+    set((state) => ({ workspaceVersion: state.workspaceVersion + 1 })),
+  setUser: (user) => set({ user, ready: true }),
+}));

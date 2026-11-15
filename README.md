@@ -1,112 +1,129 @@
-# Learnyst - Enterprise Multi-Tenant EdTech SaaS Platform
+# Learnyst — local teaching & learning workspace
 
-Learnyst is a production-grade, highly scalable Learning Management System (LMS) designed for course creators, universities, and coaching academies to host, manage, and securely deliver online courses. Built with a modern microservices architecture in Go and Next.js, it offers robust multi-tenancy, a custom event-driven video transcoding pipeline, and a stunning, high-contrast brutalist UI ("Ada Aesthetic").
+Run the Next.js frontend and Go auth/core services locally, with PostgreSQL for data and files on your own disk. **No Azure account, cloud keys, SMS service, or paid API is needed.**
 
-## 🚀 Key Features
+## Start
 
-*   **True Multi-Tenancy:** Each academy operates as an isolated tenant with custom subdomains (e.g., `academy1.learnyst.com`), segregated data, and dedicated branding.
-*   **Adaptive HLS Video Streaming:** 
-    *   Lightning-fast local `FFMPEG` processing via shared Docker volumes (bypasses slow cloud egress).
-    *   Automated multi-bitrate HLS chunking (1080p, 720p, 480p) optimized for zero-buffering with strict GOP forcing (`-g 48 -hls_time 4`).
-    *   Direct-to-cloud sync to Azure Blob Storage with automated CORS configuration.
-    *   Fallback mechanics to handle videos lacking audio streams.
-*   **Asynchronous Event-Driven Pipeline:** Leverages Kafka message brokering to decouple heavy workloads like video transcoding from core API traffic, ensuring 99.9% uptime.
-*   **Ada Aesthetic UI:** A bold, high-contrast, brutalist-inspired Next.js frontend built with Tailwind CSS, delivering a highly premium and modern learning experience.
-*   **Comprehensive Course Management:** Support for dynamic curriculum building, including video lectures, downloadable lecture notes (PDFs), and assignments.
-*   **Role-Based Access Control (RBAC):** Distinct portals and capabilities for System Admins, Tenant Owners, Teachers, and Students.
-
----
-
-## 🏗️ Architecture & Microservices
-
-Learnyst uses a highly decoupled microservices architecture to ensure scalability, fault tolerance, and developer velocity.
-
-### 1. `lms-api-gateway`
-*   **Role:** The central entry point for all frontend client requests.
-*   **Stack:** Go (Gin).
-*   **Responsibilities:** Handles global rate limiting, CORS configuration, JWT authentication verification, and routes authenticated traffic to the respective downstream microservices.
-
-### 2. `lms-core-service`
-*   **Role:** The brains of the platform.
-*   **Stack:** Go (Gin, GORM).
-*   **Responsibilities:** Manages tenant creation, course logic, user enrollments, staff assignments, and handles the initial video ingestion. It intercepts raw `.mp4` uploads and saves them to a shared local Docker volume (`/shared`), preventing expensive and slow double-hops to cloud storage.
-
-### 3. `lms-video-worker`
-*   **Role:** Heavy-duty asynchronous processor.
-*   **Stack:** Go, Sarama (Kafka), FFMPEG.
-*   **Responsibilities:** Consumes `video.uploaded` Kafka events. Reads the raw video from the local shared disk, spins up an optimized FFMPEG sub-process to generate keyframe-aligned multi-bitrate `.m3u8` playlists and `.ts` chunks, pushes them to Azure Blob Storage, and emits a `video.transcoded` event upon completion.
-
-### 4. `tenant-proxy-service`
-*   **Role:** Subdomain routing layer.
-*   **Stack:** Go.
-*   **Responsibilities:** Intercepts traffic at the edge, reads the HTTP Host header, resolves the subdomain to a specific Tenant ID in the database, and injects tenant context into downstream requests.
-
-### 5. `lms-frontend`
-*   **Role:** User-facing web application.
-*   **Stack:** Next.js 14, React, Tailwind CSS, TypeScript, Video.js.
-*   **Responsibilities:** Provides the "Ada Aesthetic" dashboards for teachers to build courses and students to consume content via custom Video.js HLS players.
-
----
-
-## 🗄️ Database & Storage Layer
-
-*   **PostgreSQL 17:** Primary relational datastore (Users, Courses, Tenants, Roles). Configured with replica instances for read-heavy operations.
-*   **Redis 7:** High-speed in-memory datastore for caching tenant lookups, rate limiting, and session management.
-*   **Kafka 7.5 & Zookeeper:** High-throughput message broker handling the event stream for background jobs (e.g., `video.uploaded`, `video.transcoded`, `email.send`).
-*   **Cassandra 4.1:** High-throughput NoSQL storage designed for writing massive amounts of analytical data and tracking user video progression/logs.
-*   **Azure Blob Storage:** Long-term cold and warm storage for serving public/private HLS video chunks, PDF notes, and image thumbnails.
-
----
-
-## 📦 Deep Dive: The Video Pipeline
-
-Our optimized HLS pipeline is built to solve the notorious "infinite buffering" and "cloud egress" problems typical in VOD platforms:
-1.  **Ingestion:** The Core Service receives an `.mp4` and saves it instantly to a shared local Docker volume (`/shared`).
-2.  **Event Publishing:** A `video.uploaded` Kafka event is emitted containing the local `local:///shared/filename.mp4` path.
-3.  **Transcoding:** The Video Worker consumes the event, grabs the file instantly from disk, and runs an optimized FFMPEG command:
-    *   `-preset veryfast`: Ensures milliseconds processing time.
-    *   `-g 48 -keyint_min 48 -sc_threshold 0`: Forces keyframes every 2 seconds, which is absolutely critical for preventing HLS players from stalling or endlessly buffering.
-    *   `-hls_time 4`: Creates small, 4-second chunks so the browser starts playing almost instantly.
-4.  **Cloud Sync:** The finalized multi-bitrate HLS streams are uploaded to Azure Blob Storage (which has CORS programmatically configured to allow frontend fetches).
-5.  **Cleanup & Notification:** The local `.mp4` is deleted to conserve server disk space, and a `video.transcoded` Kafka event is sent back to the Core Service to update the database with the public Azure `.m3u8` URL.
-
----
-
-## 🛠️ Getting Started & Local Development
-
-### Prerequisites
-*   Docker & Docker Compose (V2+)
-*   Node.js (v18+)
-*   Go (1.21+)
-*   Azure Blob Storage Account credentials (or Azurite Emulator). Ensure CORS is configured to allow `GET` and `OPTIONS` from `*` or `localhost:3005`.
-
-### 1. Bootstrapping the Backend Infrastructure
-
-The entire backend infrastructure, including databases and all Go microservices, is orchestrated via Docker Compose.
+Prerequisites: Node.js 22+, Go 1.26.3+, Docker with Compose, and FFmpeg with either the `libx264` or `libopenh264` encoder (for the sample video).
 
 ```bash
-cd lms-api-gateway
-# Ensure the .env file exists with valid POSTGRES and AZURE credentials
-docker-compose up -d --build
-```
-*You can run `docker-compose logs -f lms-video-worker` to watch the FFMPEG pipeline in action when you upload a video.*
-
-### 2. Bootstrapping the Frontend
-
-```bash
-cd lms-frontend
-npm install
+git clone https://github.com/Harsh-DevOps117/Learnyst.git
+cd Learnyst
 npm run dev
 ```
-The Next.js application will compile and be accessible at `http://localhost:3005`.
 
----
+The launcher starts the database and Mailpit, installs frontend dependencies if needed, generates an 18-second preview video, builds the Go services, runs migrations and seeds local sample data. Initial setup needs internet access for dependencies and container images. Subsequent runs reuse the database and local uploads.
 
-## 🤝 Contributing & Standards
+- **App:** http://localhost:3005
+- **Local email inbox:** http://localhost:8025
+- Auth: `127.0.0.1:3010`; core: `127.0.0.1:3011`
+- PostgreSQL: `127.0.0.1:55432`, database/user `learnyst`, local-only password `learnyst-local-only`
 
-*   **Go Code:** Ensure all Go code is formatted using `gofmt` and follows idiomatic Go practices. Avoid unnecessary comments unless documenting complex business logic.
-*   **Frontend Code:** Strictly adhere to the "Ada Aesthetic". Utilize Tailwind utility classes, maintain high contrast ratios, and use brutalist design principles (sharp corners, solid borders).
+The default ports avoid the old project's `3000`/`3001` ports. Browser requests go through the frontend's same-origin API proxy.
 
-## 📄 License
+```bash
+# Stop the app and its two containers. Saved data is retained.
+npm run stop
 
-This project is proprietary and confidential. All rights reserved.
+# Or stop app processes with Ctrl+C in the launcher terminal.
+# Containers can then be stopped with: docker compose stop
+```
+
+Do not run `docker compose down -v` unless you intend to erase this project's local database. Uploaded files live in `.local/uploads/`, independently of the database volume.
+
+## Try each role
+
+The login page includes **Student demo** and **Teacher demo** buttons. Signup also offers **I run an academy**, **Teacher** and **Student** accounts; local signup immediately signs you in, with no external OTP dependency.
+
+| Account | Email                    | Development password |
+| ------- | ------------------------ | -------------------- |
+| Teacher | `teacher@learnyst.local` | `LocalTeacher123!`   |
+| Student | `student@learnyst.local` | `LocalStudent123!`   |
+
+Demo passwords are only used when first creating the accounts. Changing a password persists across restarts. Demo seeding is idempotent and only runs with both `ENV=development` and `SEED_DEMO=true`. It never creates a default superadmin. Sample videos are explicitly labelled previews, ready to replace with your own content.
+
+**Tenant / academy owner:** configure the academy name, public address and description, invite teachers through local email, remove or restore their academy access, and monitor academy courses and enrollment totals. Owner settings and team controls are unavailable to teachers and students.
+
+**Teacher:** create a draft course, edit its details, upload an MP4/WebM video and optional PDF notes, publish, send student invitations, create assignments and review submissions. A teacher can accept an owner invitation and select the shared academy, or work in an automatically created private academy. Courses with enrolled students can be unpublished but cannot be deleted, preserving their work.
+
+**Student:** browse published courses, enroll in free courses, watch and seek local videos, resume saved progress, mark lessons complete, submit assignments and read teacher feedback. Profile changes and password updates are available in both workspaces. The sample academy is at http://localhost:3005/learning-studio.
+
+**Password recovery and invitations:** emails are delivered to Mailpit instead of the internet. Open the local inbox, select the message and follow its frontend link. Reset links expire in 30 minutes and are single-use. Course invitations expire in seven days and must be accepted by the invited student's email.
+
+## Authentication and access
+
+- Random 256-bit sessions in HttpOnly, SameSite=Lax cookies. Only hashed session tokens are stored in PostgreSQL; no credentials are stored in localStorage.
+- Login restores after a page reload. Logout, password reset and password change revoke sessions in the database immediately.
+- Server-side user, role, academy, enrollment and course-ownership checks. Client-supplied user/teacher IDs cannot impersonate another account.
+- Signup cannot request the superadmin role. Passwords are bcrypt hashed with a 72-byte limit. Auth routes are rate limited, and mutation requests check the browser origin.
+- Uploads validate file type, have a 256 MB limit and use random filenames. Local media requires course access, supports byte-range requests and does not expose the upload directory.
+
+This setup binds app services and container ports to loopback and uses HTTP cookies for localhost. It is a development setup; public deployment would need HTTPS, secure cookies and deployment-specific configuration.
+
+## Configuration
+
+All defaults work without creating an environment file. To override ports or turn off demos:
+
+```bash
+cp .env.example .env
+# Edit LEARNYST_WEB_PORT, LEARNYST_AUTH_PORT, LEARNYST_CORE_PORT,
+# LEARNYST_DB_PORT or SEED_DEMO, then restart npm run dev.
+```
+
+Changing `SEED_DEMO=false` stops future seeding; it does not delete existing demo data. Mailpit uses ports `1025` and `8025`. If a required port is occupied, the launcher reports the conflict; it does not stop unrelated projects.
+
+The original Kafka video worker, site builder, tenant proxy and AI service remain as source. The default local app uses direct MP4/WebM playback, so Kafka, Cassandra, Redis, HLS transcoding and site generation are not startup dependencies. External AI and paid checkout are not exposed by the local API; it does not simulate payments or AI responses. Azure adapters have been replaced with filesystem adapters, and tracked binaries and hardcoded credentials have been removed.
+
+**Credential cleanup:** removing secrets from the working tree does not remove them from earlier Git commits or existing clones. Revoke/rotate the Azure keys that were previously committed before reusing that account. No remote history has been rewritten.
+
+## Verify
+
+Keep `npm run dev` running in another terminal.
+
+```bash
+# Nine backend integration tests against real local services
+npm test
+
+# Type/lint checks and an optimized production build
+npm --prefix lms-frontend run lint
+npm --prefix lms-frontend run typecheck
+npm run build
+
+# Seven browser workflows: owner/team permissions, signup, teacher authoring,
+# student video/progress, assignment feedback, mobile and password recovery
+cd lms-frontend
+npx playwright install chromium
+npm run test:e2e
+
+# Dependency audit
+npm audit
+```
+
+If Chromium is already installed elsewhere, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its executable when running browser tests. Tests create uniquely named local fixtures and clean up only users with test email addresses and their records. They do not alter the demo users' passwords or progress. Screenshots/traces from failed browser tests are saved under `lms-frontend/test-results/`.
+
+For the current 7:30 role-based frontend tour with pages scrolled from top to bottom, run:
+
+```bash
+npm run record:full
+```
+
+The `record` and `record:roles` commands run the same tour. Install Playwright Chromium first; FFmpeg is required for MP4 export. Set `LEARNYST_DEMO_DIR` to override the default Desktop output directory. Generated videos are local artifacts and are not committed to the repository.
+
+This saves `Learnyst-Landing-Design-Full-Demo.mp4` and its chapter index on the Desktop. The landing page and all authentication, Tenant, Teacher and Student screens share its charcoal palette, Space Grotesk headings, Inter body text, mono labels and white pill buttons. The hero keeps “THE INFRASTRUCTURE” together at desktop and mobile widths. The tour has separate Tenant, Teacher and Student chapters: the owner configures an academy and invites a teacher; the teacher joins that academy, publishes lessons and reviews work; the student enrolls, watches, downloads notes, submits work and reads feedback. Desktop/mobile screens and password recovery are included. Hinglish captions appear below the product viewport. Footage is grouped by role, with the teacher review recorded after the student submission.
+
+The recorder exercises teacher signup, course creation, local video upload, publishing, invitations, assignments, student signup/enrollment, video playback and saved progress, teacher feedback, profile changes, password recovery and mobile navigation. It uses temporary test accounts and removes them after recording.
+
+Go services can also be checked with `go test ./...` inside each service directory. Auth/core run together via the root launcher; running the frontend alone does not start its API services.
+
+## Layout
+
+```text
+scripts/dev.mjs            One-command local launcher
+scripts/stop.mjs           Stop this project's app and containers
+compose.yaml              PostgreSQL + local email inbox
+lms-api-gateway/           Cookie sessions, signup/login and password recovery
+lms-core-service/          Authorized courses, enrollment, media and assignments
+lms-frontend/             Next.js teacher/student workspaces
+.local/                   Ignored build binaries, process info and uploaded files
+tests/                    Backend integration tests and fixture cleanup
+```

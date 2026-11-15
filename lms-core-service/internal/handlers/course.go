@@ -1,24 +1,27 @@
 package handlers
+
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"github.com/gin-gonic/gin"
-	"lms-core-service/internal/azureblob"
 	"lms-core-service/internal/database"
 	"lms-core-service/internal/kafka"
 	lmsmodels "lms-core-service/internal/models"
+	"lms-core-service/internal/storage"
+	"net/http"
 )
+
 type CreateCourseRequest struct {
-	TenantID     uint    `json:"tenant_id" binding:"required"`
-	Title        string  `json:"title" binding:"required"`
-	Slug         string  `json:"slug" binding:"required"`
-	Description  string  `json:"description"`
-	Category     string  `json:"category"`
-	Level        string  `json:"level"`
-	Price        float64 `json:"price"`
-	CreatedBy    uint    `json:"created_by" binding:"required"`
+	TenantID    uint    `json:"tenant_id" binding:"required"`
+	Title       string  `json:"title" binding:"required"`
+	Slug        string  `json:"slug" binding:"required"`
+	Description string  `json:"description"`
+	Category    string  `json:"category"`
+	Level       string  `json:"level"`
+	Price       float64 `json:"price"`
+	CreatedBy   uint    `json:"created_by" binding:"required"`
 }
+
 func CreateCourseHandler(c *gin.Context) {
 	var req CreateCourseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -32,7 +35,7 @@ func CreateCourseHandler(c *gin.Context) {
 			staff = lmsmodels.TenantStaff{
 				TenantID: req.TenantID,
 				UserID:   req.CreatedBy,
-				RoleID:   1, 
+				RoleID:   1,
 				IsActive: true,
 			}
 			if createErr := database.DB.Create(&staff).Error; createErr != nil {
@@ -52,7 +55,7 @@ func CreateCourseHandler(c *gin.Context) {
 		Category:    req.Category,
 		Level:       req.Level,
 		Price:       req.Price,
-		CreatedBy:   staff.ID, 
+		CreatedBy:   staff.ID,
 		IsPublished: false,
 	}
 	if err := database.DB.Create(&course).Error; err != nil {
@@ -61,6 +64,7 @@ func CreateCourseHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, course)
 }
+
 type UpdateCourseRequest struct {
 	Title        string  `json:"title"`
 	Description  string  `json:"description"`
@@ -68,6 +72,7 @@ type UpdateCourseRequest struct {
 	Price        float64 `json:"price"`
 	IsPublished  *bool   `json:"is_published"`
 }
+
 func UpdateCourseHandler(c *gin.Context) {
 	id := c.Param("id")
 	var req UpdateCourseRequest
@@ -101,6 +106,7 @@ func UpdateCourseHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Course updated successfully"})
 }
+
 type CreateVideoRequest struct {
 	TenantID        uint   `json:"tenant_id" binding:"required"`
 	TeacherID       uint   `json:"teacher_id" binding:"required"`
@@ -110,6 +116,7 @@ type CreateVideoRequest struct {
 	NoteUrl         string `json:"note_url"`
 	DurationSeconds int    `json:"duration_seconds"`
 }
+
 func CreateCourseVideoHandler(c *gin.Context) {
 	courseId := c.Param("id")
 	var req CreateVideoRequest
@@ -132,7 +139,7 @@ func CreateCourseVideoHandler(c *gin.Context) {
 	video := lmsmodels.CourseVideo{
 		TenantID:        req.TenantID,
 		CourseID:        cID,
-		TeacherID:       staff.ID, 
+		TeacherID:       staff.ID,
 		Title:           req.Title,
 		Description:     req.Description,
 		VideoUrl:        req.VideoUrl,
@@ -156,6 +163,7 @@ func CreateCourseVideoHandler(c *gin.Context) {
 	}()
 	c.JSON(http.StatusOK, video)
 }
+
 type CreateAssignmentRequest struct {
 	TenantID      uint   `json:"tenant_id" binding:"required"`
 	TeacherID     uint   `json:"teacher_id" binding:"required"`
@@ -164,6 +172,7 @@ type CreateAssignmentRequest struct {
 	AttachmentUrl string `json:"attachment_url"`
 	MaxMarks      int    `json:"max_marks"`
 }
+
 func CreateAssignmentHandler(c *gin.Context) {
 	courseId := c.Param("id")
 	var req CreateAssignmentRequest
@@ -181,7 +190,7 @@ func CreateAssignmentHandler(c *gin.Context) {
 	assignment := lmsmodels.Assignment{
 		TenantID:      req.TenantID,
 		CourseID:      cID,
-		TeacherID:     staff.ID, 
+		TeacherID:     staff.ID,
 		Title:         req.Title,
 		Description:   req.Description,
 		AttachmentUrl: req.AttachmentUrl,
@@ -201,14 +210,14 @@ func DeleteCourseHandler(c *gin.Context) {
 		return
 	}
 	if course.ThumbnailUrl != "" {
-		_ = azureblob.DeleteBlob(context.Background(), course.ThumbnailUrl)
+		_ = storage.DeleteBlob(context.Background(), course.ThumbnailUrl)
 	}
 	// 2. Fetch and Delete Videos (blob + db record)
 	var videos []lmsmodels.CourseVideo
 	database.DB.Where("course_id = ?", course.ID).Find(&videos)
 	for _, video := range videos {
 		if video.VideoUrl != "" {
-			_ = azureblob.DeleteBlob(context.Background(), video.VideoUrl)
+			_ = storage.DeleteBlob(context.Background(), video.VideoUrl)
 		}
 		database.DB.Delete(&video)
 	}
@@ -217,7 +226,7 @@ func DeleteCourseHandler(c *gin.Context) {
 	database.DB.Where("course_id = ?", course.ID).Find(&assignments)
 	for _, assignment := range assignments {
 		if assignment.AttachmentUrl != "" {
-			_ = azureblob.DeleteBlob(context.Background(), assignment.AttachmentUrl)
+			_ = storage.DeleteBlob(context.Background(), assignment.AttachmentUrl)
 		}
 		// Also delete submissions before deleting the assignment
 		database.DB.Where("assignment_id = ?", assignment.ID).Delete(&lmsmodels.AssignmentSubmission{})

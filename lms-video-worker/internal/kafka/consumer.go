@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 	"github.com/IBM/sarama"
-	"lms-video-worker/internal/azureblob"
+	"lms-video-worker/internal/storage"
 	"lms-video-worker/internal/transcoder"
 )
 type VideoUploadedEvent struct {
@@ -49,10 +49,10 @@ func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 					log.Printf("Successfully deleted local video %d", event.VideoID)
 				}
 			} else {
-				if err := azureblob.DeleteBlobFromUrl(event.RawUrl); err != nil {
-					log.Printf("Warning: Failed to delete raw video from Azure for video %d: %v", event.VideoID, err)
+				if err := storage.DeleteBlobFromUrl(event.RawUrl); err != nil {
+					log.Printf("Warning: Failed to delete raw video from local storage for video %d: %v", event.VideoID, err)
 				} else {
-					log.Printf("Successfully deleted raw video from Azure for video %d", event.VideoID)
+					log.Printf("Successfully deleted raw video from local storage for video %d", event.VideoID)
 				}
 			}
 			if masterUrl != "" {

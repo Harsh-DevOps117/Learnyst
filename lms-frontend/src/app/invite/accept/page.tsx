@@ -1,92 +1,94 @@
-'use client';
-import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { authApi, coreApi } from '@/api/client';
-import { useAuthStore } from '@/store/authStore';
-import toast from 'react-hot-toast';
-function AcceptInviteForm() {
+"use client";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight, MailOpen } from "lucide-react";
+import { coreApi, errorMessage } from "@/api/client";
+import { useAuthStore } from "@/store/authStore";
+import { Brand } from "@/components/workspace/Brand";
+import { Loading } from "@/components/workspace/Shared";
+function Invitation() {
+  const params = useSearchParams();
+  const token = params.get("token");
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const { setAuth } = useAuthStore();
-  useEffect(() => {
-    if (!token) {
-      toast.error('Invalid or missing invitation token.');
-    }
-  }, [token]);
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { user, ready } = useAuthStore();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function accept() {
+    setBusy(true);
+    setError("");
     try {
-      // 1. Log in to get the JWT and User ID
-      let device_name = "Unknown Device";
-      if (typeof navigator !== "undefined") {
-        const ua = navigator.userAgent;
-        if (/android/i.test(ua)) device_name = "Android Mobile";
-        else if (/iPad|iPhone|iPod/.test(ua)) device_name = "iOS Mobile";
-        else if (/Windows/i.test(ua)) device_name = "Windows Desktop";
-        else if (/Mac/i.test(ua)) device_name = "Mac Desktop";
-        else if (/Linux/i.test(ua)) device_name = "Linux Desktop";
-        else device_name = "Web Browser";
-      }
-      const loginRes = await authApi.post('/login', {
-        email,
-        password,
-        device_name
-      });
-      const { access_token, user_id, role_id } = loginRes.data;
-      setAuth(access_token, role_id || 1, user_id);
-      await coreApi.post('/invitations/accept', {
-        token,
-        user_id: user_id
-      }, {
-        headers: { Authorization: `Bearer ${access_token}` }
-      });
-      toast.success('Invitation accepted! Welcome to the academy.');
-      router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to accept invitation. Make sure you are registered.');
+      const { data } = await coreApi.post<{
+        course_id?: number;
+        redirect?: string;
+      }>("/invitations/accept", { token });
+      router.replace(data.redirect || `/dashboard/courses/${data.course_id}`);
+    } catch (error) {
+      setError(errorMessage(error));
+    } finally {
+      setBusy(false);
     }
-  };
+  }
+  const next = `/invite/accept?token=${encodeURIComponent(token || "")}`;
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)] flex flex-col items-center justify-center p-6">
-      <div className="max-w-[400px] w-full">
-        <h1 className="font-display text-[48px] uppercase text-[var(--color-ink)] leading-none mb-2 text-center">
-          ACCEPT INVITATION
+    <main className="full-loading">
+      <Brand />
+      <section
+        className="panel"
+        style={{ width: "min(440px, calc(100vw - 40px))", marginTop: 35 }}
+      >
+        <MailOpen size={30} color="currentColor" />
+        <h1 style={{ fontSize: 29, margin: "20px 0 12px" }}>
+          You’re invited to join.
         </h1>
-        <p className="font-ui text-[16px] text-[var(--color-mute)] mb-8 text-center">
-          Log in with your existing teacher account to join the academy.
+        <p className="muted">
+          Sign in with the email and account type your invitation was sent to,
+          then join your course or teaching team.
         </p>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Input 
-            type="email" 
-            placeholder="Email address" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input 
-            type="password" 
-            placeholder="Password" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button type="submit" variant="primary" className="mt-4">
-            Join Academy
-          </Button>
-        </form>
-      </div>
-    </div>
+        {error && (
+          <div className="notice error" role="alert">
+            {error}
+          </div>
+        )}
+        {!token || !/^[a-f0-9]{64}$/.test(token) ? (
+          <div className="notice error">
+            This invitation link is incomplete. Ask the sender for a new one.
+          </div>
+        ) : !ready ? (
+          <Loading />
+        ) : user ? (
+          <>
+            <p className="muted" style={{ marginTop: 20 }}>
+              Signed in as {user.email}
+            </p>
+            <button
+              className="btn btn-primary full"
+              style={{ marginTop: 20 }}
+              disabled={busy}
+              onClick={() => void accept()}
+            >
+              {busy ? "Joining…" : "Accept invitation"}
+              <ArrowRight size={16} />
+            </button>
+          </>
+        ) : (
+          <Link
+            className="btn btn-primary full"
+            style={{ marginTop: 25 }}
+            href={`/login?next=${encodeURIComponent(next)}`}
+          >
+            Sign in to join
+            <ArrowRight size={16} />
+          </Link>
+        )}
+      </section>
+    </main>
   );
 }
-export default function AcceptInvitePage() {
+export default function Page() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[var(--color-canvas)] flex items-center justify-center font-display text-[24px]">LOADING...</div>}>
-      <AcceptInviteForm />
+    <Suspense fallback={<Loading />}>
+      <Invitation />
     </Suspense>
   );
 }

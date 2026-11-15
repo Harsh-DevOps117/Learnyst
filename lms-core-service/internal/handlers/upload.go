@@ -1,12 +1,14 @@
 package handlers
+
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"lms-core-service/internal/storage"
 	"net/http"
 	"path/filepath"
 	"time"
-	"github.com/gin-gonic/gin"
-	"lms-core-service/internal/azureblob"
 )
+
 func UploadAssetHandler(c *gin.Context) {
 	if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "File size exceeds limit or invalid form"})
@@ -53,9 +55,9 @@ func UploadAssetHandler(c *gin.Context) {
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
-	publicUrl, err := azureblob.UploadStream(c.Request.Context(), blobName, file, contentType)
+	publicUrl, err := storage.UploadStream(c.Request.Context(), blobName, file, contentType)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload to Azure: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload to local storage: " + err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{

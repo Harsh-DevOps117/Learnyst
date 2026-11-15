@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"lms-builder-service/internal/azureblob"
+	"lms-builder-service/internal/storage"
 )
 func BuildCustomReact(tenantSlug string, zipFilePath string) error {
 	log.Printf("Starting Custom React Build for %s", tenantSlug)
@@ -41,7 +41,7 @@ func BuildCustomReact(tenantSlug string, zipFilePath string) error {
 			outputDir = filepath.Join(workDir, "out") 
 		}
 	}
-	err = azureblob.UploadDirectory(tenantSlug, outputDir)
+	err = storage.UploadDirectory(tenantSlug, outputDir)
 	if err != nil {
 		return fmt.Errorf("failed to upload dist to S3: %w", err)
 	}

@@ -1,56 +1,62 @@
 package mail
 
 import (
-	"crypto/tls"
 	"fmt"
-	"log"
+	"net"
+	"net/smtp"
+	"net/url"
 	"os"
-	"strconv"
-
-	"gopkg.in/gomail.v2"
+	"strings"
+	"time"
 )
 
-func SendInvitationEmail(to string, tenantName string, customDomain string, inviteToken string) error {
-	host := os.Getenv("MAILTRAP_SMTP_HOST")
-	portStr := os.Getenv("MAILTRAP_SMTP_PORT")
-	user := os.Getenv("MAILTRAP_SMTP_USER")
-	pass := os.Getenv("MAILTRAP_SMTP_PASS")
-	from := os.Getenv("MAILTRAP_FROM_EMAIL")
-
-	if host == "" || user == "" || pass == "" {
-		log.Println("WARNING: SMTP credentials not fully configured. Skipping email send.")
-		return nil
+func SendInvitationEmail(to, courseTitle, domain, token string) error {
+	return sendInvitation(to, "You have a course invitation", "You are invited to "+courseTitle+".", token)
+}
+func SendAcademyInvitationEmail(to, academy, token string) error {
+	return sendInvitation(to, "You have an academy teacher invitation", "You are invited to teach at "+academy+". Sign in or create a teacher account with this email, then accept the invitation.", token)
+}
+func sendInvitation(to, subject, message, token string) error {
+	addr := os.Getenv("SMTP_ADDR")
+	if addr == "" {
+		addr = "127.0.0.1:1025"
 	}
-
-	port, err := strconv.Atoi(portStr)
+	base := strings.TrimRight(os.Getenv("FRONTEND_URL"), "/")
+	if base == "" {
+		base = "http://localhost:3005"
+	}
+	link := base + "/invite/accept?token=" + url.QueryEscape(token)
+	body := fmt.Sprintf("From: Learnyst <hello@learnyst.local>\r\nTo: %s\r\nSubject: %s\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n%s\r\n\r\nSign in with this email to accept: %s\r\n\r\nThis invitation expires in 7 days.\r\n", to, subject, message, link)
+	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
 	if err != nil {
-		port = 2525
+		return err
 	}
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", from)
-	m.SetHeader("To", to)
-	m.SetHeader("Subject", fmt.Sprintf("You have been invited to teach at %s", tenantName))
-
-	inviteLink := fmt.Sprintf("https://%s/accept-invite?token=%s", customDomain, inviteToken)
-
-	htmlBody := fmt.Sprintf(`
-		<h1>Welcome to %s!</h1>
-		<p>You have been invited to join the teaching staff.</p>
-		<p>Please click the button below to accept your invitation and access your assigned courses.</p>
-		<a href="%s" style="display: inline-block; padding: 10px 20px; background-color: #0f172a; color: #ffffff; text-decoration: none; border-radius: 5px;">Accept Invitation</a>
-		<p>Or copy this link: %s</p>
-	`, tenantName, inviteLink, inviteLink)
-
-	m.SetBody("text/html", htmlBody)
-	fmt.Println(htmlBody)
-	d := gomail.NewDialer(host, port, user, pass)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-	if err := d.DialAndSend(m); err != nil {
-		return fmt.Errorf("failed to send email: %w", err)
+	defer conn.Close()
+	_ = conn.SetDeadline(time.Now().Add(5 * time.Second))
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return err
 	}
-
-	log.Printf("Invitation email sent successfully to %s", to)
-	return nil
+	client, err := smtp.NewClient(conn, host)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	if err = client.Mail("hello@learnyst.local"); err != nil {
+		return err
+	}
+	if err = client.Rcpt(to); err != nil {
+		return err
+	}
+	w, err := client.Data()
+	if err != nil {
+		return err
+	}
+	if _, err = w.Write([]byte(body)); err != nil {
+		return err
+	}
+	if err = w.Close(); err != nil {
+		return err
+	}
+	return client.Quit()
 }

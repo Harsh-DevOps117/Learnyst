@@ -1,147 +1,131 @@
 package controller
+
 import (
+	"github.com/gin-gonic/gin"
+	dtos "lms-api-gateway/internal/config/dto"
+	"lms-api-gateway/internal/models"
+	"lms-api-gateway/internal/service"
+	"log"
 	"net/http"
 	"os"
-	"lms-api-gateway/internal/config/dto"
-	"lms-api-gateway/internal/service"
-	"github.com/gin-gonic/gin"
+	"strings"
 )
-type AuthController struct {
-	authService *service.AuthService
+
+const SessionCookie = "learnyst_session"
+
+type AuthController struct{ authService *service.AuthService }
+
+func NewAuthController(s *service.AuthService) *AuthController {
+	return &AuthController{authService: s}
 }
-func NewAuthController(authService *service.AuthService) *AuthController {
-	return &AuthController{
-		authService: authService,
-	}
+func setCookie(c *gin.Context, token string, age int) {
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie(SessionCookie, token, age, "/", "", os.Getenv("COOKIE_SECURE") == "true", true)
+	c.Header("Cache-Control", "no-store")
 }
-func (ac *AuthController) InitiateSignup(c *gin.Context) {
-	var req dtos.SignupRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := ac.authService.InitiateSignup(c.Request.Context(), &req); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "Signup initiated, OTP sent to phone"})
+func respondUser(c *gin.Context, u *models.User, code int) {
+	c.Header("Cache-Control", "no-store")
+	c.JSON(code, gin.H{"user": u, "user_id": u.ID, "role_id": u.RoleID})
 }
-func (ac *AuthController) ResendSignupOTP(c *gin.Context) {
-	phone := c.Query("phone")
-	if phone == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "phone parameter is required"})
-		return
-	}
-	if err := ac.authService.ResendSignupOTP(c.Request.Context(), phone); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "OTP resent successfully"})
-}
-func (ac *AuthController) CompleteSignup(c *gin.Context) {
-	var req dtos.OTPVerifyRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	user, err := ac.authService.CompleteSignup(c.Request.Context(), req.Target, req.Code)
+func (ac *AuthController) signIn(c *gin.Context, u *models.User, code int) {
+	token, err := ac.authService.NewSession(u.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": "Could not start your session."})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully", "user_id": user.ID})
+	old, _ := c.Cookie(SessionCookie)
+	if old != "" {
+		_ = ac.authService.Logout(old)
+	}
+	setCookie(c, token, 7*24*3600)
+	respondUser(c, u, code)
+}
+func (ac *AuthController) Register(c *gin.Context) {
+	var req dtos.SignupRequest
+	if c.ShouldBindJSON(&req) != nil {
+		c.JSON(400, gin.H{"error": "Enter your first and last name, a valid email, a password of 8–72 characters, and a valid account type."})
+		return
+	}
+	user, err := ac.authService.Register(req)
+	if err != nil {
+		c.JSON(409, gin.H{"error": err.Error()})
+		return
+	}
+	ac.signIn(c, user, 201)
 }
 func (ac *AuthController) Login(c *gin.Context) {
 	var req dtos.LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if c.ShouldBindJSON(&req) != nil {
+		c.JSON(400, gin.H{"error": "Enter a valid email and password."})
 		return
 	}
-	res, err := ac.authService.Login(c.Request.Context(), &req)
+	user, err := ac.authService.Login(req)
 	if err != nil {
-		if err.Error() == "invalid email or password" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
-	baseDomain := os.Getenv("BASE_DOMAIN")
-	if baseDomain == "" {
-		baseDomain = "localhost"
+	ac.signIn(c, user, 200)
+}
+func (ac *AuthController) Session(c *gin.Context) {
+	token, _ := c.Cookie(SessionCookie)
+	user, err := ac.authService.Session(token)
+	if err != nil {
+		setCookie(c, "", -1)
+		c.JSON(401, gin.H{"error": service.ErrSession.Error()})
+		return
 	}
-	isSecure := baseDomain != "localhost"
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("session_token", res.AccessToken, 3600*24, "/", baseDomain, isSecure, true)
-	c.JSON(http.StatusOK, res)
+	respondUser(c, user, 200)
+}
+func (ac *AuthController) Logout(c *gin.Context) {
+	token, _ := c.Cookie(SessionCookie)
+	if err := ac.authService.Logout(token); err != nil {
+		c.JSON(503, gin.H{"error": "Could not sign out. Please try again."})
+		return
+	}
+	setCookie(c, "", -1)
+	c.JSON(200, gin.H{"message": "Signed out."})
 }
 func (ac *AuthController) RequestPasswordReset(c *gin.Context) {
 	var req dtos.ResetPasswordRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if c.ShouldBindJSON(&req) != nil {
+		c.JSON(400, gin.H{"error": "Enter a valid email address."})
 		return
 	}
-	if err := ac.authService.RequestPasswordReset(c.Request.Context(), req.Email); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process request"})
-		return
+	// The same response for known and unknown emails prevents account enumeration.
+	if err := ac.authService.RequestReset(req.Email); err != nil {
+		log.Print("Password reset email could not be delivered")
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "If an account with that email exists, a password reset link has been sent"})
+	c.JSON(200, gin.H{"message": "If this email has an account, a reset link has been sent. Check your local inbox."})
 }
 func (ac *AuthController) CompletePasswordReset(c *gin.Context) {
 	var req dtos.CompleteResetPasswordRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if c.ShouldBindJSON(&req) != nil {
+		c.JSON(400, gin.H{"error": "Enter a valid reset token and a password of 8–72 characters."})
 		return
 	}
-	if err := ac.authService.CompletePasswordReset(c.Request.Context(), req.Token, req.NewPassword); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := ac.authService.ResetPassword(req.Token, req.NewPassword); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successful"})
+	setCookie(c, "", -1)
+	c.JSON(200, gin.H{"message": "Password updated. Please sign in again."})
 }
 func (ac *AuthController) ChangePassword(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	token, _ := c.Cookie(SessionCookie)
+	user, err := ac.authService.Session(token)
+	if err != nil {
+		c.JSON(401, gin.H{"error": service.ErrSession.Error()})
 		return
 	}
 	var req dtos.ChangePasswordRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if c.ShouldBindJSON(&req) != nil || len(strings.TrimSpace(req.NewPassword)) < 8 {
+		c.JSON(400, gin.H{"error": "Enter your current password and a new password of 8–72 characters."})
 		return
 	}
-	if err := ac.authService.ChangePassword(c.Request.Context(), userID.(string), req.OldPassword, req.NewPassword); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ac.authService.ChangePassword(user.ID, req.OldPassword, req.NewPassword); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
-}
-func (ac *AuthController) InitiateChangeEmail(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-	var req dtos.ChangeEmailRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := ac.authService.InitiateChangeEmail(c.Request.Context(), userID.(string), req.NewEmail); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "Verification link sent to new email"})
-}
-func (ac *AuthController) VerifyChangeEmail(c *gin.Context) {
-	var req dtos.VerifyChangeEmailRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := ac.authService.VerifyChangeEmail(c.Request.Context(), req.Token); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "Email changed successfully"})
+	setCookie(c, "", -1)
+	c.JSON(200, gin.H{"message": "Password changed. Please sign in again."})
 }

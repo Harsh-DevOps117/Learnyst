@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.css';
-export const VideoPlayer = ({ options, onReady }: { options: any; onReady?: (player: Player) => void }) => {
+export const VideoPlayer = ({ options, onReady }: { options: Parameters<typeof videojs>[1]; onReady?: (player: Player) => void }) => {
   const videoRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<Player | null>(null);
   useEffect(() => {
@@ -15,11 +15,11 @@ export const VideoPlayer = ({ options, onReady }: { options: any; onReady?: (pla
       }
       const player = (playerRef.current = videojs(videoElement, options, () => {
         videojs.log('player is ready');
-        onReady && onReady(player);
+        onReady?.(player);
       }));
     } else {
       const player = playerRef.current;
-      if (options.sources && options.sources.length > 0) {
+      if (options?.sources && options.sources.length > 0) {
         player.src(options.sources);
       }
     }

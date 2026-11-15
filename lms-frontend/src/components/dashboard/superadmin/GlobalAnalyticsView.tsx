@@ -2,7 +2,7 @@
 
 import { Activity, Users } from 'lucide-react';
 
-export function GlobalAnalyticsView({ analytics }: { analytics: any }) {
+export function GlobalAnalyticsView({ analytics }: { analytics: { total_users: number; total_profit: number; currency: string } | null }) {
   if (!analytics) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gsap-stagger-item animate-pulse">

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 	"tenant-proxy-service/internal/db"
-	"tenant-proxy-service/internal/azureblob"
+	"tenant-proxy-service/internal/storage"
 	"github.com/gin-gonic/gin"
 )
 func SetupRouter() *gin.Engine {
@@ -56,9 +56,9 @@ func ProxyHandler(c *gin.Context) {
 	}
 	path := c.Request.URL.Path
 	path = strings.TrimPrefix(path, "/")
-	body, contentType, err := azureblob.FetchFile(c.Request.Context(), tenant.AcademySlug, path)
+	body, contentType, err := storage.FetchFile(c.Request.Context(), tenant.AcademySlug, path)
 	if err != nil {
-		body, contentType, err = azureblob.FetchFile(c.Request.Context(), tenant.AcademySlug, "index.html")
+		body, contentType, err = storage.FetchFile(c.Request.Context(), tenant.AcademySlug, "index.html")
 		if err != nil {
 			c.String(http.StatusNotFound, "404 - Page Not Found")
 			return

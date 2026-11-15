@@ -8,14 +8,14 @@ import (
 	"os"
 	"tenant-proxy-service/internal/db"
 	"tenant-proxy-service/internal/router"
-	"tenant-proxy-service/internal/azureblob"
+	"tenant-proxy-service/internal/storage"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/acme/autocert"
 )
 func main() {
 	_ = godotenv.Load()
 	db.InitDB()
-	azureblob.InitAzureBlob()
+	storage.InitStorage()
 	r := router.SetupRouter()
 	certManager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,

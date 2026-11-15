@@ -6,3 +6,27 @@ build/
 .DS_Store
 *.log
 *.http
+.local/
+.next/
+test-results/
+playwright-report/
+*.tsbuildinfo
+__pycache__/
+!*.env.example
+!**/.env.example
+
+# Rebuild service binaries locally; do not commit credentials embedded in binaries.
+**/api
+**/main
+**/worker
+**/builder
+**/proxy
+
+# Local screenshots and walkthrough recordings
+artifacts/
+*.mp4
+*.webm
+*.mov
+*.mkv
+*.avi
+*.m4v

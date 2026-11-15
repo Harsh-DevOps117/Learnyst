@@ -1,0 +1,17 @@
+{
+  "name": "learnyst-local",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "stop": "node scripts/stop.mjs",
+    "build": "npm --prefix lms-frontend run build",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "record": "node lms-frontend/scripts/record-roles.mjs",
+    "record:full": "node lms-frontend/scripts/record-roles.mjs",
+    "record:roles": "node lms-frontend/scripts/record-roles.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "type": "module"
+}

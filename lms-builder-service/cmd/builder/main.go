@@ -6,13 +6,13 @@ import (
 	"os/signal"
 	"syscall"
 	"lms-builder-service/internal/kafka"
-	"lms-builder-service/internal/azureblob"
+	"lms-builder-service/internal/storage"
 	"github.com/joho/godotenv"
 )
 func main() {
 	_ = godotenv.Load()
 	log.Println("Starting LMS Builder Service...")
-	azureblob.InitAzureBlob()
+	storage.InitStorage()
 	ctx, cancel := context.WithCancel(context.Background())
 	go kafka.StartConsumer(ctx)
 	quit := make(chan os.Signal, 1)

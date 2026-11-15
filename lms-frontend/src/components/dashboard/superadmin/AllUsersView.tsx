@@ -3,7 +3,7 @@
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
-export function AllUsersView({ users, handleDeleteUser }: { users: any[], handleDeleteUser: (id: number) => void }) {
+export function AllUsersView({ users, handleDeleteUser }: { users: { id: number; first_name: string; last_name: string; phone: string; email: string; role_id: number; role_name: string }[], handleDeleteUser: (id: number) => void }) {
   if (!users) {
     return (
       <div className="space-y-4 gsap-stagger-item animate-pulse">

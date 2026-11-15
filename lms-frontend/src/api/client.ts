@@ -1,29 +1,31 @@
-import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
-
+import axios from "axios";
+import { useAuthStore } from "@/store/authStore";
 export const authApi = axios.create({
-  baseURL: 'http://localhost:3000/v1/auth',
+  baseURL: "/api/auth",
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 15000,
 });
-
 export const coreApi = axios.create({
-  baseURL: 'http://localhost:3001/api/v1',
+  baseURL: "/api/core",
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 20000,
 });
-
-coreApi.interceptors.request.use(
-  (config) => {
-    const token = useAuthStore.getState().token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+coreApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401)
+      useAuthStore.getState().setUser(null);
+    return Promise.reject(error);
   },
-  (error) => Promise.reject(error)
 );
+export function errorMessage(
+  error: unknown,
+  fallback = "Something went wrong. Please try again.",
+) {
+  if (axios.isAxiosError(error)) {
+    if (!error.response)
+      return "Could not connect to Learnyst. Check that the local services are running.";
+    return error.response.data?.error || fallback;
+  }
+  return fallback;
+}

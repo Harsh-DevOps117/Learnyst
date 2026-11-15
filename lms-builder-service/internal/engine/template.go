@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"lms-builder-service/internal/azureblob"
+	"lms-builder-service/internal/storage"
 )
 func BuildTemplateSite(tenantSlug string, academyName string, color string) error {
 	log.Printf("Starting Template Build for %s", tenantSlug)
@@ -77,7 +77,7 @@ func BuildTemplateSite(tenantSlug string, academyName string, color string) erro
 	if err != nil {
 		return fmt.Errorf("failed to write template: %w", err)
 	}
-	err = azureblob.UploadDirectory(tenantSlug, workDir)
+	err = storage.UploadDirectory(tenantSlug, workDir)
 	if err != nil {
 		return fmt.Errorf("failed to upload template to S3: %w", err)
 	}

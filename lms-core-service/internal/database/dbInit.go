@@ -1,13 +1,17 @@
 package database
+
 import (
-	"log"
-	"os"
-	"lms-core-service/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"gorm.io/plugin/dbresolver"
+	"lms-core-service/internal/models"
+	"log"
+	"os"
 )
+
 var DB *gorm.DB
+
 func InitDatabase() (*gorm.DB, error) {
 	masterUri := os.Getenv("DB_URI")
 	if masterUri == "" {
@@ -19,7 +23,7 @@ func InitDatabase() (*gorm.DB, error) {
 		replicaUri = masterUri
 	}
 	var err error
-	DB, err = gorm.Open(postgres.Open(masterUri), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(masterUri), &gorm.Config{TranslateError: true, Logger: logger.Default.LogMode(logger.Silent)})
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +53,9 @@ func AutoMigrate(db *gorm.DB) error {
 	log.Println("Running Automigrations for LMS Core Service...")
 	err := db.AutoMigrate(
 		&models.User{},
+		&models.AuthSession{},
+		&models.LocalAsset{},
+		&models.WorkspacePreference{},
 		&models.RefreshToken{},
 		&models.Tenant{},
 		&models.Role{},

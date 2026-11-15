@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 	"path/filepath"
-	"lms-video-worker/internal/azureblob"
+	"lms-video-worker/internal/storage"
 )
 
 func ProcessAdaptiveStreaming(tenantID, courseID, videoID uint, rawUrl, slug, phone string) (string, error) {
@@ -78,7 +78,7 @@ func ProcessAdaptiveStreaming(tenantID, courseID, videoID uint, rawUrl, slug, ph
 		}
 	}
 
-	log.Printf("Generated HLS files in %s. Uploading to Azure Blob Container...", workDir)
+	log.Printf("Generated HLS files in %s. Uploading to local storage...", workDir)
 	files, err := os.ReadDir(workDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to read output directory: %w", err)
@@ -87,7 +87,7 @@ func ProcessAdaptiveStreaming(tenantID, courseID, videoID uint, rawUrl, slug, ph
 	for _, f := range files {
 		localPath := filepath.Join(workDir, f.Name())
 		blobName := fmt.Sprintf("%s_%s/video/%d/%d/hls/%s", slug, phone, courseID, videoID, f.Name())
-		url, err := azureblob.UploadFile(localPath, blobName)
+		url, err := storage.UploadFile(localPath, blobName)
 		if err != nil {
 			log.Printf("Failed to upload %s: %v", f.Name(), err)
 			return "", err

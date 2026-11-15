@@ -1,0 +1,48 @@
+/* Public sections share the application's original landing-page palette. */
+.home {
+  --color-canvas: #1c1c1c;
+  --color-surface-1: #2a2a2a;
+  --color-surface-2: #e5e5e5;
+  --color-ink: #fff;
+  --color-ink-muted: #999;
+  --color-primary: #fff;
+  --color-on-primary: #000;
+  --color-accent-orange: #ff5500;
+  --color-accent-blue: #0066ff;
+  color: white;
+  background: #1c1c1c;
+  font-family: "Inter Variable", sans-serif;
+}
+.home :global(.font-display) {
+  font-family: "Space Grotesk Variable", sans-serif;
+}
+.home :global(.font-ui) {
+  font-family: "Inter Variable", sans-serif;
+}
+.home :global(.font-mono) {
+  font-family: "Space Mono", monospace;
+}
+/* Let the original Tailwind typography win over workspace base styles. */
+.home :is(h1, h2, h3, p) {
+  margin: revert-layer;
+  font-weight: revert-layer;
+  line-height: revert-layer;
+  letter-spacing: revert-layer;
+}
+.home button {
+  font: revert-layer;
+  color: revert-layer;
+}
+.home a {
+  color: revert-layer;
+}
+.heroColumn {
+  container-type: inline-size;
+}
+.heroHeading {
+  font-size: clamp(23px, 7.6cqw, 72px);
+}
+.heroLead {
+  display: block;
+  white-space: nowrap;
+}

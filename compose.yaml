@@ -1,0 +1,26 @@
+name: learnyst-local
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: learnyst
+      POSTGRES_PASSWORD: learnyst-local-only
+      POSTGRES_DB: learnyst
+    ports:
+      - "127.0.0.1:${LEARNYST_DB_PORT:-55432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U learnyst -d learnyst"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
+    restart: unless-stopped
+volumes:
+  pgdata:

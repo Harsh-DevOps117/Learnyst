@@ -30,41 +30,46 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import Image from "next/image";
+import styles from "./home.module.css";
 export default function Home() {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const handleBuy = (id: number, price: number) => {
-    toast.success(`Access granted to system_${id}. Initializing protocol...`);
-  };
+  const openPortal = (role: "teacher" | "student") =>
+    router.push(role === "teacher" ? "/signup?role=teacher" : "/signup");
   return (
-    <div className="min-h-screen bg-[var(--color-canvas)] text-white overflow-x-hidden flex flex-col font-ui selection:bg-[var(--color-primary)] selection:text-black">
+    <div
+      className={`${styles.home} min-h-screen bg-[var(--color-canvas)] text-white overflow-x-hidden flex flex-col font-ui selection:bg-[var(--color-primary)] selection:text-black`}
+    >
       {}
       <nav className="border-b border-[rgba(255,255,255,0.1)] flex justify-between items-center px-6 md:px-8 py-6 md:py-8 sticky top-0 bg-[var(--color-canvas)] z-50">
         <div className="font-display font-bold text-[24px] tracking-tighter">
           LEARNYST
         </div>
-        <div className="hidden md:flex gap-8">
-          {}
-        </div>
+        <div className="hidden md:flex gap-8">{}</div>
         <div className="flex gap-4 items-center">
           <a
             href="#"
             className="text-[12px] font-mono font-bold uppercase tracking-widest text-[var(--color-ink-muted)] hover:text-white hidden sm:block"
-            onClick={(e) => { e.preventDefault(); router.push('/signup'); }}
+            onClick={(e) => {
+              e.preventDefault();
+              router.push("/signup?role=tenant");
+            }}
           >
             GET A DEMO
           </a>
           <Button
             variant="primary"
             className="px-6 py-2 rounded-full text-[12px] hidden sm:block"
-            onClick={() => router.push('/login')}
+            onClick={() => router.push("/login")}
           >
             SIGN UP/IN
           </Button>
-          <button 
+          <button
             className="md:hidden p-2 -mr-2 text-white"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -73,21 +78,19 @@ export default function Home() {
       {}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 top-[81px] bg-[var(--color-canvas)] z-40 flex flex-col p-6 gap-6 h-[calc(100vh-81px)] overflow-y-auto">
-          <div className="flex flex-col gap-6 pt-4">
-            {}
-          </div>
+          <div className="flex flex-col gap-6 pt-4">{}</div>
           <div className="mt-auto pt-8 flex flex-col gap-4 pb-8">
             <Button
               variant="secondary"
               className="w-full justify-center py-4 text-[14px]"
-              onClick={() => router.push('/signup')}
+              onClick={() => router.push("/signup?role=tenant")}
             >
               GET A DEMO
             </Button>
             <Button
               variant="primary"
               className="w-full justify-center py-4 bg-white text-black hover:bg-gray-200 text-[14px]"
-              onClick={() => router.push('/login')}
+              onClick={() => router.push("/login")}
             >
               SIGN UP/IN
             </Button>
@@ -97,11 +100,15 @@ export default function Home() {
       {}
       <main className="flex flex-col md:flex-row min-h-[85vh] border-b border-[rgba(255,255,255,0.1)] bg-[var(--color-canvas)]">
         {}
-        <div className="w-full md:w-1/2 flex flex-col border-r border-[rgba(255,255,255,0.1)] relative">
+        <div
+          className={`${styles.heroColumn} w-full md:w-1/2 flex flex-col border-r border-[rgba(255,255,255,0.1)] relative`}
+        >
           {}
           <div className="flex-1 p-8 md:p-12 lg:p-16 flex flex-col justify-center border-b border-[rgba(255,255,255,0.1)]">
-            <h1 className="font-display font-medium text-[48px] md:text-[60px] lg:text-[72px] leading-[1.05] uppercase mb-8 tracking-tighter text-left">
-              THE INFRASTRUCTURE <br />
+            <h1
+              className={`${styles.heroHeading} font-display font-medium leading-[1.05] uppercase mb-8 tracking-tighter text-left`}
+            >
+              <span className={styles.heroLead}>THE INFRASTRUCTURE</span>
               FOR DIGITAL EDUCATION
             </h1>
             <p className="font-ui text-[18px] md:text-[20px] text-[var(--color-ink-muted)] mb-12 max-w-[500px] leading-relaxed text-left">
@@ -113,11 +120,15 @@ export default function Home() {
               <Button
                 variant="secondary"
                 className="bg-white text-black hover:bg-gray-200 border-white px-8 h-[50px]"
-                onClick={() => router.push('/signup')}
+                onClick={() => router.push("/signup?role=teacher")}
               >
                 START TEACHING
               </Button>
-              <Button variant="secondary" className="px-8 h-[50px]" onClick={() => router.push('/signup')}>
+              <Button
+                variant="secondary"
+                className="px-8 h-[50px]"
+                onClick={() => router.push("/login")}
+              >
                 BOOK A DEMO
               </Button>
             </div>
@@ -158,8 +169,11 @@ export default function Home() {
         </div>
         {}
         <div className="w-full md:w-1/2 bg-[#e6e9e3] flex items-center justify-center relative overflow-hidden min-h-[500px]">
-          <img
+          <Image
             src="/images/i1.png"
+            fill
+            priority
+            sizes="(min-width: 768px) 50vw, 100vw"
             alt="Learnyst Platform"
             className="w-full h-full object-cover absolute inset-0"
           />
@@ -200,7 +214,7 @@ export default function Home() {
             </h2>
             <p className="text-[16px] lg:w-[50%] text-gray-800 leading-relaxed">
               Learnyst solves the hard problems creators face when building
-              academies, whether it's a{" "}
+              academies, whether it’s a{" "}
               <span className="text-[#8e44ad] font-medium">live-cohort</span>{" "}
               platform,{" "}
               <span className="text-[#8e44ad] font-medium">community chat</span>
@@ -516,7 +530,10 @@ export default function Home() {
         </div>
       </section>
       {}
-      <section className="bg-[var(--color-canvas)] border-b border-[rgba(255,255,255,0.1)] relative">
+      <section
+        id="platform-features"
+        className="bg-[var(--color-canvas)] border-b border-[rgba(255,255,255,0.1)] relative"
+      >
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-2 border-l border-r border-[rgba(255,255,255,0.1)]">
           <div className="p-8 md:p-16 lg:p-24 border-b lg:border-b-0 lg:border-r border-[rgba(255,255,255,0.1)] flex flex-col justify-center relative overflow-hidden">
             {}
@@ -547,7 +564,7 @@ export default function Home() {
                 </span>
               }
               featured={false}
-              onBuy={() => handleBuy(1, 0)}
+              onBuy={() => openPortal("teacher")}
             />
             <ProductCard
               name="STUDENT PORTALS"
@@ -559,13 +576,16 @@ export default function Home() {
                   <GraduationCap size={24} />
                 </span>
               }
-              onBuy={() => handleBuy(2, 0)}
+              onBuy={() => openPortal("student")}
             />
           </div>
         </div>
       </section>
       {}
-      <section className="bg-[var(--color-canvas)] border-b border-[rgba(255,255,255,0.1)] py-24 md:py-32 relative">
+      <section
+        id="pricing"
+        className="bg-[var(--color-canvas)] border-b border-[rgba(255,255,255,0.1)] py-24 md:py-32 relative"
+      >
         <div className="max-w-[1200px] mx-auto px-8">
           <div className="text-center mb-16 md:mb-24">
             <h2 className="font-display font-medium text-[40px] md:text-[56px] leading-[1.05] tracking-tight mb-4">
@@ -618,7 +638,11 @@ export default function Home() {
                   Custom Domain
                 </li>
               </ul>
-              <Button variant="secondary" className="w-full h-[50px]" onClick={() => router.push('/signup')}>
+              <Button
+                variant="secondary"
+                className="w-full h-[50px]"
+                onClick={() => router.push("/signup?role=tenant")}
+              >
                 GET STARTED
               </Button>
             </div>
@@ -669,7 +693,7 @@ export default function Home() {
               <Button
                 variant="primary"
                 className="w-full bg-black text-white hover:bg-gray-800 h-[50px]"
-                onClick={() => router.push('/signup')}
+                onClick={() => router.push("/signup?role=tenant")}
               >
                 UPGRADE TO PRO
               </Button>
@@ -712,7 +736,11 @@ export default function Home() {
                   99.99% Uptime SLA
                 </li>
               </ul>
-              <Button variant="secondary" className="w-full h-[50px]" onClick={() => router.push('/signup')}>
+              <Button
+                variant="secondary"
+                className="w-full h-[50px]"
+                onClick={() => router.push("/signup?role=tenant")}
+              >
                 CONTACT SALES
               </Button>
             </div>
@@ -781,18 +809,22 @@ export default function Home() {
         <div className="max-w-[1000px] mx-auto px-8 flex flex-col items-center text-center relative z-10">
           <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-white/20 bg-white/5 backdrop-blur-sm mb-12">
             <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-            <span className="font-mono text-[12px] uppercase tracking-widest text-gray-300">Start scaling your academy</span>
+            <span className="font-mono text-[12px] uppercase tracking-widest text-gray-300">
+              Start scaling your academy
+            </span>
           </div>
           <h2 className="font-display font-medium text-[56px] md:text-[96px] leading-[0.95] tracking-tighter mb-16">
             STOP PAYING PER USER.
           </h2>
-          <button 
+          <button
             className="group relative inline-flex items-center justify-center gap-4 bg-white text-black hover:bg-gray-200 transition-all duration-300 font-display font-bold text-[24px] md:text-[32px] px-10 py-5 rounded-[100px] mb-24 overflow-hidden"
-            onClick={() => router.push('/signup')}
+            onClick={() => router.push("/signup?role=tenant")}
           >
-cd             <span className="relative z-10 uppercase tracking-tight">Launch your academy</span>
+            <span className="relative z-10 uppercase tracking-tight">
+              Launch your academy
+            </span>
             <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center relative z-10 group-hover:scale-110 transition-transform duration-300">
-               <ArrowUp size={24} className="rotate-45" />
+              <ArrowUp size={24} className="rotate-45" />
             </div>
           </button>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 w-full max-w-[800px] border-t border-[rgba(255,255,255,0.1)] pt-16">
@@ -801,7 +833,9 @@ cd             <span className="relative z-10 uppercase tracking-tight">Launch y
                 <Building2 size={32} />
               </div>
               <div>
-                <div className="font-display font-bold text-[24px] mb-2">Explore the Platform</div>
+                <div className="font-display font-bold text-[24px] mb-2">
+                  Explore the Platform
+                </div>
                 <div className="font-mono text-[12px] text-gray-400 uppercase tracking-widest flex items-center justify-center md:justify-start gap-2 group-hover:text-white transition-colors">
                   View Features <ArrowUp size={12} className="rotate-45" />
                 </div>
@@ -812,7 +846,9 @@ cd             <span className="relative z-10 uppercase tracking-tight">Launch y
                 <AtSign size={32} />
               </div>
               <div>
-                <div className="font-display font-bold text-[24px] mb-2">Speak to an Expert</div>
+                <div className="font-display font-bold text-[24px] mb-2">
+                  Speak to an Expert
+                </div>
                 <div className="font-mono text-[12px] text-gray-400 uppercase tracking-widest flex items-center justify-center md:justify-start gap-2 group-hover:text-white transition-colors">
                   Book a Demo <ArrowUp size={12} className="rotate-45" />
                 </div>
